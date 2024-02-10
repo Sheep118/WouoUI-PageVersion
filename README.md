@@ -1,0 +1,2 @@
+# WouoUI-PageVersion
+这是一个改动自WouoUI的纯C语言，无依赖库，只适用于128*64OLED的代码框架，将WouoUI抽象出一部分统一的接口，以方便快速构建一个类似具有WouoUI风格的OLEDUI。
