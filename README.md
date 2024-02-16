@@ -3,11 +3,13 @@
 
 ### 简介&致谢
 
-这是一个改动自WouoUI(1.2版本)的纯C语言，无依赖库，只适用于128*64OLED的代码框架，将WouoUI抽象出一部分统一的接口，以方便快速构建一个具有类似WouoUI风格的OLEDUI。
+- 本项目TestUI例子的[b站的演示视频](https://www.bilibili.com/video/BV19K421r76m/?share_source=copy_web&vd_source=d55bdbc2322bca2e7e5f953886166b1e)
 
-在此十分感谢WouoUI作者开源WouoUI的源码🙏🙏，这是[WouoUI的Github链接](https://github.com/RQNG/WouoUI )和[作者的b站链接](https://space.bilibili.com/9182439)。
+- 这是一个改动自WouoUI(1.2版本)的纯C语言，无依赖库，只适用于128*64OLED的代码框架，将WouoUI抽象出一部分统一的接口，以方便快速构建一个具有类似WouoUI风格的OLEDUI。
 
-(推荐大家可以去阅读下WouoUI的源代码(Arduino)，写得非常好，逻辑相当清晰)。
+  在此十分感谢WouoUI作者开源WouoUI的源码🙏🙏，这是[WouoUI的Github链接](https://github.com/RQNG/WouoUI )和[作者的b站链接](https://space.bilibili.com/9182439)。
+
+  (推荐大家可以去阅读下WouoUI的源代码(Arduino)，写得非常好，逻辑相当清晰)。
 
 ### 想法由来和一些啰嗦
 
