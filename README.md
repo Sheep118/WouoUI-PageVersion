@@ -154,7 +154,7 @@ OK ，到这里的话，就算移植结束了(感觉说是复制更为合适，�
 
 - TiltlePage页面的演示效果如下：
 
-  <img src="https://sheep-photo.oss-cn-shenzhen.aliyuncs.com/img/TitlePage%E6%BC%94%E7%A4%BA.gif" alt="TitlePage演示" style="zoom:80%;" />
+  ![DigitalPage](https://github.com/Sheep118/WouoUI-PageVersion/blob/main/Image/DigitalPage%E6%BC%94%E7%A4%BA.gif)
 
 - 接口函数只有一个
 
