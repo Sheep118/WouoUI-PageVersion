@@ -3,7 +3,7 @@
 
 ### 简介&致谢
 
-这是一个改动自WouoUI的纯C语言，无依赖库，只适用于128*64OLED的代码框架，将WouoUI抽象出一部分统一的接口，以方便快速构建一个类似具有WouoUI风格的OLEDUI。
+这是一个改动自WouoUI(1.2版本)的纯C语言，无依赖库，只适用于128*64OLED的代码框架，将WouoUI抽象出一部分统一的接口，以方便快速构建一个具有类似WouoUI风格的OLEDUI。
 
 在此十分感谢WouoUI作者开源WouoUI的源码🙏🙏，这是[WouoUI的Github链接](https://github.com/RQNG/WouoUI )和[作者的b站链接](https://space.bilibili.com/9182439)。
 
@@ -44,7 +44,7 @@ WouoUIPage版源代码非常简单，只有oled_g.c , oled_ui.c 两个.c文件�
 
 1. 将上述说明的7个文件包含在工程中。
 
-2. 根据自己128*64的OLED屏和自己使用MCU完成一个oled_port.c文件，这个文件包含提供的oled_port.h文件，并实现oled_port.h中声明的两个函数 `OLED_Init` `OLED_SendBuff` 。
+2. 根据自己128*64的OLED屏和自己使用的MCU完成一个oled_port.c文件，这个文件包含提供的oled_port.h文件，并实现oled_port.h中声明的两个函数 `OLED_Init` `OLED_SendBuff` 。
 
    一般这两个函数OLED厂商都会提供对应的代码，或者根据厂商的代码简单修改也能得到。
 
@@ -129,6 +129,14 @@ OK ，到这里的话，就算移植结束了(感觉说是复制更为合适，�
   } Option; //通用选项类
   ```
 
+  >Option变量的初始化需要注意以下两点：
+  >
+  >1. 字符串成员 text, 在ListPage和TitlePage页面都是有前缀的，且前缀是有意义的(用于识别弹窗和选框)；**text的第一个字符判断为数值弹窗(~)/确认弹窗($)/其他项(-)/二值选项框(+)/单选项(=)**。
+  >
+  >2. **如果想要一个选项不会受接收消息的控制，如某个数值变量(如电量，由外部来更改，不是需要设置的)只是用于展示的，step成员可以设置为0，这样即使收到对应的up/down消息也不会改变其值。同时，因为将step设为0时，通常将数值弹窗当作展示使用，所以此时会在进入数值弹窗前调用一次回调函数用于给数值赋值，若step不为0,则只有在数值弹窗内收到click才会调用回调** 。
+  >
+  >   同样的，**对于二值选框(text以"+ "开头) ， 如果step为0，收到up/down消息时也不会取反，只有step不为0时才会取反。**
+
 - `CallBackFunc` : 回调函数类型，每个页面都需要一个回调函数(如果没有回调函数，在对应初始化函数中置NULL即可)。
 
   通常需要定义一个形如`void MainPage_CallBack(uint8_t self_page_id,Option* select_item)`的函数(其中，MainPage_CallBack是由我们定义的回调函数名(地址))，并该函数地址作为参数给对应的页面初始化函数。
@@ -145,7 +153,7 @@ OK ，到这里的话，就算移植结束了(感觉说是复制更为合适，�
 
 - TiltlePage页面的演示效果如下：
 
-  
+  ![TitlePage演示](https://sheep-photo.oss-cn-shenzhen.aliyuncs.com/img/TitlePage%E6%BC%94%E7%A4%BA.gif)
 
 - 接口函数只有一个
 
@@ -171,7 +179,7 @@ OK ，到这里的话，就算移植结束了(感觉说是复制更为合适，�
 
 - ListPage页面的演示效果如下：
 
-  
+  ![ListPage演示](https://sheep-photo.oss-cn-shenzhen.aliyuncs.com/img/ListPage%E6%BC%94%E7%A4%BA.gif)
 
 - 同样地，接口函数只有一个
 
@@ -190,7 +198,7 @@ OK ，到这里的话，就算移植结束了(感觉说是复制更为合适，�
 
 - RadioPage页面的演示效果如下：
 
-  
+  ![RadioPage演示](https://sheep-photo.oss-cn-shenzhen.aliyuncs.com/img/RadioPage%E6%BC%94%E7%A4%BA.gif)
 
 - 其实，**RadioPage页面和ListPage页面是基本一样的，不同的是，对于使用`"= "` 作为text前缀的选项来说，RadioPage页面会将其处理为单选项，即，这个页面内，所有使用 `"= "` 为text前缀的选项只能有一个能被选中，以实现单选的效果。**因为，通常对于这样的选项页面，我们一整个页面内都是这种单选项，所以将其单独作为一个页面类型拿出。
 
@@ -204,7 +212,7 @@ OK ，到这里的话，就算移植结束了(感觉说是复制更为合适，�
 
 - WavePage页面的演示效果
 
-  
+  ![WavePage演示](https://sheep-photo.oss-cn-shenzhen.aliyuncs.com/img/WavePage%E6%BC%94%E7%A4%BA.gif)
 
 - WavePage页面有两个接口函数
 
@@ -234,7 +242,7 @@ OK ，到这里的话，就算移植结束了(感觉说是复制更为合适，�
 
 - RaderPicPage页面演示效果：
 
-  
+  ![RaderPicPage演示](https://sheep-photo.oss-cn-shenzhen.aliyuncs.com/img/RaderPicPage%E6%BC%94%E7%A4%BA.gif)
 
 - RaderPicPage 类只有一个接口函数(就是初始化函数)
 
@@ -281,7 +289,7 @@ OK ，到这里的话，就算移植结束了(感觉说是复制更为合适，�
 
 #### DigitalPage 页面演示效果：
 
-
+![DigitalPage演示](https://sheep-photo.oss-cn-shenzhen.aliyuncs.com/img/DigitalPage%E6%BC%94%E7%A4%BA.gif)
 
 #### DigitalPage 页面相关的接口函数有三个:
 
@@ -349,7 +357,7 @@ DigitalPage页面运行的状态机如下图所示：有兴趣的可以看看�
 
 一些UI使用的接口函数和参数一起在这儿说明。
 
-#### 接口函数(有5个)
+#### 接口函数(有6个)
 
 ```c
 //用于向UI传递一个消息Msg(msg_click/msg_up/msg_down/msg_return)
@@ -366,6 +374,8 @@ void OLED_UIJumpToPage(uint8_t self_page_id,PageAddr terminate_page);
 //terminate_page 页面收到return 消息不会返回当前页面(常用于临时的画面切换)
 //@param terminate_page 要跳转的那个页面的地址(不需要理会是那种类型的页面，直接将页面地址作为参数传入即可)
 void OLED_UIChangeCurrentPage(PageAddr terminate_page);
+/*获取当前页面的id*/
+uint8_t OLED_UIGetCurrentPageID(void);
 ```
 
 需要注意的只有：
@@ -455,3 +465,8 @@ WouoUIPage的参数基本上WouoUI原作保持一致，如下:(由于我没有�
 - WouoUIPage的状态机(相比WouoUI原版减少了一个”退出过渡动画“，原因就是 Air001的RAM和Flash不太够🤣)。
 
   <img src="https://sheep-photo.oss-cn-shenzhen.aliyuncs.com/img/image-20240212120647148.png" alt="image-20240212120647148" style="zoom:67%;" />
+
+### 关于注释
+
+如果有小伙伴愿意查看源代码的话，可能会看到有三种风格的函数注释，这是因为我本身有两种函数注释风格，而且在后期写代码的过程中，使用了阿里的大模型帮忙生成注释，因此注释可能会有多种风格😆。
+
