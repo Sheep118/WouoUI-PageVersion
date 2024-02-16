@@ -153,7 +153,7 @@ OK ，到这里的话，就算移植结束了(感觉说是复制更为合适，�
 
 - TiltlePage页面的演示效果如下：
 
-  ![TitlePage演示](https://sheep-photo.oss-cn-shenzhen.aliyuncs.com/img/TitlePage%E6%BC%94%E7%A4%BA.gif)
+  <img src="https://sheep-photo.oss-cn-shenzhen.aliyuncs.com/img/TitlePage%E6%BC%94%E7%A4%BA.gif" alt="TitlePage演示" style="zoom:80%;" />
 
 - 接口函数只有一个
 
@@ -179,7 +179,7 @@ OK ，到这里的话，就算移植结束了(感觉说是复制更为合适，�
 
 - ListPage页面的演示效果如下：
 
-  ![ListPage演示](https://sheep-photo.oss-cn-shenzhen.aliyuncs.com/img/ListPage%E6%BC%94%E7%A4%BA.gif)
+  <img src="https://sheep-photo.oss-cn-shenzhen.aliyuncs.com/img/ListPage%E6%BC%94%E7%A4%BA.gif" alt="ListPage演示" style="zoom:80%;" />
 
 - 同样地，接口函数只有一个
 
@@ -198,7 +198,7 @@ OK ，到这里的话，就算移植结束了(感觉说是复制更为合适，�
 
 - RadioPage页面的演示效果如下：
 
-  ![RadioPage演示](https://sheep-photo.oss-cn-shenzhen.aliyuncs.com/img/RadioPage%E6%BC%94%E7%A4%BA.gif)
+  <img src="https://sheep-photo.oss-cn-shenzhen.aliyuncs.com/img/RadioPage%E6%BC%94%E7%A4%BA.gif" alt="RadioPage演示" style="zoom:80%;" />
 
 - 其实，**RadioPage页面和ListPage页面是基本一样的，不同的是，对于使用`"= "` 作为text前缀的选项来说，RadioPage页面会将其处理为单选项，即，这个页面内，所有使用 `"= "` 为text前缀的选项只能有一个能被选中，以实现单选的效果。**因为，通常对于这样的选项页面，我们一整个页面内都是这种单选项，所以将其单独作为一个页面类型拿出。
 
@@ -212,7 +212,7 @@ OK ，到这里的话，就算移植结束了(感觉说是复制更为合适，�
 
 - WavePage页面的演示效果
 
-  ![WavePage演示](https://sheep-photo.oss-cn-shenzhen.aliyuncs.com/img/WavePage%E6%BC%94%E7%A4%BA.gif)
+  <img src="https://sheep-photo.oss-cn-shenzhen.aliyuncs.com/img/WavePage%E6%BC%94%E7%A4%BA.gif" alt="WavePage演示" style="zoom:80%;" />
 
 - WavePage页面有两个接口函数
 
@@ -242,7 +242,7 @@ OK ，到这里的话，就算移植结束了(感觉说是复制更为合适，�
 
 - RaderPicPage页面演示效果：
 
-  ![RaderPicPage演示](https://sheep-photo.oss-cn-shenzhen.aliyuncs.com/img/RaderPicPage%E6%BC%94%E7%A4%BA.gif)
+  <img src="https://sheep-photo.oss-cn-shenzhen.aliyuncs.com/img/RaderPicPage%E6%BC%94%E7%A4%BA.gif" alt="RaderPicPage演示" style="zoom:80%;" />
 
 - RaderPicPage 类只有一个接口函数(就是初始化函数)
 
@@ -289,7 +289,7 @@ OK ，到这里的话，就算移植结束了(感觉说是复制更为合适，�
 
 #### DigitalPage 页面演示效果：
 
-![DigitalPage演示](https://sheep-photo.oss-cn-shenzhen.aliyuncs.com/img/DigitalPage%E6%BC%94%E7%A4%BA.gif)
+<img src="https://sheep-photo.oss-cn-shenzhen.aliyuncs.com/img/DigitalPage%E6%BC%94%E7%A4%BA.gif" alt="DigitalPage演示" style="zoom:80%;" />
 
 #### DigitalPage 页面相关的接口函数有三个:
 
