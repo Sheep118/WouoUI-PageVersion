@@ -154,7 +154,9 @@ OK ，到这里的话，就算移植结束了(感觉说是复制更为合适，�
 
 - TiltlePage页面的演示效果如下：
 
-  ![DigitalPage](https://github.com/Sheep118/WouoUI-PageVersion/blob/main/Image/DigitalPage%E6%BC%94%E7%A4%BA.gif)
+  (不知道为什么，github上的gif加载不出来，就放截图在这儿吧，原先准备的gif文件在Image文件夹中)
+
+  ![TitlePage演示](https://sheep-photo.oss-cn-shenzhen.aliyuncs.com/img/TitlePage%E6%BC%94%E7%A4%BA.png)
 
 - 接口函数只有一个
 
@@ -180,7 +182,7 @@ OK ，到这里的话，就算移植结束了(感觉说是复制更为合适，�
 
 - ListPage页面的演示效果如下：
 
-  <img src="https://sheep-photo.oss-cn-shenzhen.aliyuncs.com/img/ListPage%E6%BC%94%E7%A4%BA.gif" alt="ListPage演示" style="zoom:80%;" />
+  <img src="https://sheep-photo.oss-cn-shenzhen.aliyuncs.com/img/ListPage%E6%BC%94%E7%A4%BA.png" alt="ListPage演示" style="zoom:60%;" />
 
 - 同样地，接口函数只有一个
 
@@ -199,7 +201,7 @@ OK ，到这里的话，就算移植结束了(感觉说是复制更为合适，�
 
 - RadioPage页面的演示效果如下：
 
-  <img src="https://sheep-photo.oss-cn-shenzhen.aliyuncs.com/img/RadioPage%E6%BC%94%E7%A4%BA.gif" alt="RadioPage演示" style="zoom:80%;" />
+  <img src="https://sheep-photo.oss-cn-shenzhen.aliyuncs.com/img/RadioPage%E6%BC%94%E7%A4%BA.png" alt="RadioPage演示" style="zoom:60%;" />
 
 - 其实，**RadioPage页面和ListPage页面是基本一样的，不同的是，对于使用`"= "` 作为text前缀的选项来说，RadioPage页面会将其处理为单选项，即，这个页面内，所有使用 `"= "` 为text前缀的选项只能有一个能被选中，以实现单选的效果。**因为，通常对于这样的选项页面，我们一整个页面内都是这种单选项，所以将其单独作为一个页面类型拿出。
 
@@ -213,7 +215,7 @@ OK ，到这里的话，就算移植结束了(感觉说是复制更为合适，�
 
 - WavePage页面的演示效果
 
-  <img src="https://sheep-photo.oss-cn-shenzhen.aliyuncs.com/img/WavePage%E6%BC%94%E7%A4%BA.gif" alt="WavePage演示" style="zoom:80%;" />
+  <img src="https://sheep-photo.oss-cn-shenzhen.aliyuncs.com/img/WavePage%E6%BC%94%E7%A4%BA.png" alt="WavePage演示" style="zoom:60%;" />
 
 - WavePage页面有两个接口函数
 
@@ -243,7 +245,7 @@ OK ，到这里的话，就算移植结束了(感觉说是复制更为合适，�
 
 - RaderPicPage页面演示效果：
 
-  <img src="https://sheep-photo.oss-cn-shenzhen.aliyuncs.com/img/RaderPicPage%E6%BC%94%E7%A4%BA.gif" alt="RaderPicPage演示" style="zoom:80%;" />
+  <img src="https://sheep-photo.oss-cn-shenzhen.aliyuncs.com/img/RaderPicPage%E6%BC%94%E7%A4%BA.png" alt="RaderPicPage演示" style="zoom:60%;" />
 
 - RaderPicPage 类只有一个接口函数(就是初始化函数)
 
@@ -290,7 +292,7 @@ OK ，到这里的话，就算移植结束了(感觉说是复制更为合适，�
 
 #### DigitalPage 页面演示效果：
 
-<img src="https://sheep-photo.oss-cn-shenzhen.aliyuncs.com/img/DigitalPage%E6%BC%94%E7%A4%BA.gif" alt="DigitalPage演示" style="zoom:80%;" />
+<img src="https://sheep-photo.oss-cn-shenzhen.aliyuncs.com/img/DigitalPage%E6%BC%94%E7%A4%BA.png" alt="DigitalPage演示" style="zoom:60%;" />
 
 #### DigitalPage 页面相关的接口函数有三个:
 
