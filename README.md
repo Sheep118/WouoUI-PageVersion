@@ -36,6 +36,7 @@ WouoUIPage版源代码非常简单，只有oled_g.c , oled_ui.c 两个.c文件�
 	|---src  (这个文件夹是WouoUIPage最主要的源代码文件，移植时主要用这里面的几个文件)
 	|---example  (这个是使用WouoUIPage所提供的接口构建的一些应用的例子,只有对应.c.h文件)
 |---ProjectExamples  (这个文件夹内放着使用WouoUIPage的工程的参考，按主控的类型划分，为移植时提供一些参考)
+|---Image (存放一些展示用的图片)
 ```
 
 ### 移植大致流程
