@@ -3,7 +3,13 @@
 
 ### 简介&致谢
 
-- 本项目TestUI例子的[b站的演示视频](https://www.bilibili.com/video/BV19K421r76m/?share_source=copy_web&vd_source=d55bdbc2322bca2e7e5f953886166b1e)
+- Air001的TestUI例子的[b站的演示视频](https://www.bilibili.com/video/BV19K421r76m/?share_source=copy_web&vd_source=d55bdbc2322bca2e7e5f953886166b1e)
+
+- Air001的LittleClock例子的b站演示视频: https://www.bilibili.com/video/BV1J6421g7H1/
+
+- Stm32的TestUI例子的b站演示视频:  https://www.bilibili.com/video/BV1mS421P7CZ/
+
+  所有演示的工程文件都使用zip压缩包上传在对应的文件夹下。
 
 - 这是一个改动自WouoUI(1.2版本)的纯C语言，无依赖库，只适用于128*64OLED的代码框架，将WouoUI抽象出一部分统一的接口，以方便快速构建一个具有类似WouoUI风格的OLEDUI。
 
