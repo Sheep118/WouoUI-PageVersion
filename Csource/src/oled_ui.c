@@ -1068,6 +1068,7 @@ static void OLED_DigitalDrawLabel(DigitalPage * dp, int16_t y , String label)
 
 static uint8_t temp_num_pos = 0; //用于在show函数内暂时装载num_pos变量，实现同时运动动画和ripple动画的切换
 static DigitalDirect temp_dir = Digital_Direct_None; //记录下运动方向
+static DigitalDirect temp_label_dir = Digital_Direct_None; //记录下label运动方向，防止数字和label同时需要运动的情况出现
 
 static void OLED_DigitalShow(PageAddr page_addr)
 {
@@ -1123,10 +1124,11 @@ static void OLED_DigitalShow(PageAddr page_addr)
         //数字上下移动
         if(dp->dir != Digital_Direct_None) 
         {
-            temp_dir = dp->dir; //记录传入的方向，并清零传入的消息(label移动，也将方向读出)
             if((dp->digital_num_pos & 0x3F) && !(dp->digital_num_pos & 0x40)) 
-            //ripple模式和一起滚动模式的区别只对数字移动有效(对标签滚动无效)
-            //排除标签是为了防止在数字运动是标签运动重复进入
+            {
+                temp_dir = dp->dir; //记录数字传入的方向，
+                //ripple模式和一起滚动模式的区别只对数字移动有效(对标签滚动无效)
+                //排除标签是为了防止在数字运动是标签运动重复进入
                 if(ui.upara->digital_ripple) //第一次接收到运动消息时，
                 {
                     OLED_DigitalDirChangey(dp,temp_dir);
@@ -1141,12 +1143,16 @@ static void OLED_DigitalShow(PageAddr page_addr)
                     //更新选中位的值
                     OLED_DigitalDirChangey(dp,temp_dir);
                 }
+            }
+            else if(dp->digital_num_pos & 0x40) //如果是标签
+            {
+                temp_label_dir = dp->dir;
+            }
             dp->dir = Digital_Direct_None; //保证只有接收到运动消息的第一次进来
         }
-        if(temp_dir != Digital_Direct_None) //持续运动
-            if(dp->digital_num_pos & 0x3F) //移动的是数字
+        if(temp_dir != Digital_Direct_None && (dp->digital_num_pos & 0x3F)) //持续运动//移动的是数字
                 OLED_Animation(&(dp->num_y),&(dp->num_y_trg),ui.upara->ani_param[DIGI_ANI]);  //从0-24
-            else if(dp->digital_num_pos & 0x40) //移动的是标签
+        if(temp_label_dir != Digital_Direct_None && (dp->digital_num_pos & 0x40)) //移动的是标签
                 OLED_Animation(&(dp->label_y),&(dp->label_y_trg),ui.upara->ani_param[DIGI_ANI]);
         for(uint8_t i = 0; i < DIGITAL_NUM_INDEX_MAX; i++) //绘制每个数字win的位置
         {
@@ -1191,12 +1197,12 @@ static void OLED_DigitalShow(PageAddr page_addr)
         }
         //标签上下移动
         //绘制移动标签
-        if((dp->digital_num_pos&0x40) && temp_dir == Digital_Direct_Increase) 
+        if((dp->digital_num_pos&0x40) && temp_label_dir == Digital_Direct_Increase) 
         {
             OLED_DigitalDrawLabel(dp, dp->label_y + DIGITAL_Label_SIZE, dp->label_array[dp->select_label_index]);
             OLED_DigitalDrawLabel(dp, dp->label_y, dp->label_array[last_or_next_label_index]);
         }
-        else if (((dp->digital_num_pos)&0x40) && temp_dir == Digital_Direct_Decrease)
+        else if (((dp->digital_num_pos)&0x40) && temp_label_dir == Digital_Direct_Decrease)
         {
             OLED_DigitalDrawLabel(dp, dp->label_y - DIGITAL_Label_SIZE, dp->label_array[dp->select_label_index]);
             OLED_DigitalDrawLabel(dp, dp->label_y, dp->label_array[last_or_next_label_index]);
@@ -1205,7 +1211,7 @@ static void OLED_DigitalShow(PageAddr page_addr)
             OLED_DigitalDrawLabel(dp, 0, dp->label_array[dp->select_label_index]);
         //运动完成
         if(dp->label_y == dp->label_y_trg  && ((dp->digital_num_pos)&0x40))
-        {  temp_dir = Digital_Direct_None;  dp->digital_num_pos &= 0x3F;}
+        {  temp_label_dir = Digital_Direct_None;  dp->digital_num_pos &= 0x3F;}
     }
 }
 
@@ -1383,9 +1389,9 @@ void OLED_DigitalPage_UpdateLabelAnimation(DigitalPage * dp, uint8_t label_index
         dp->digital_num_pos |= 0x40; // 设置数字位置标志位
         if(dir == Digital_Direct_Increase)dp->label_y_trg = - DIGITAL_Label_SIZE; // 如果方向为增加，则设置运动目标值为负数
         else dp->label_y_trg = DIGITAL_Label_SIZE; // 如果方向为减少，则设置运动目标值为正数
+        last_or_next_label_index = dp->select_label_index; // 存储上一次的值
     }
     dp->select_label_index = label_index; // 更新选中项
-    last_or_next_label_index = dp->select_label_index; // 存储上一次的值
 }
 
 
