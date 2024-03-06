@@ -43,6 +43,8 @@ WouoUIPage版源代码非常简单，只有oled_g.c , oled_ui.c 两个.c文件�
 |---Csource
 	|---src  (这个文件夹是WouoUIPage最主要的源代码文件，移植时主要用这里面的几个文件)
 	|---example  (这个是使用WouoUIPage所提供的接口构建的一些应用的例子,只有对应.c.h文件)
+|---HardwareTestingDevice(这个文件夹存在着我所用来测试WouoUI Page版的相关硬件资料)
+	|---HardWare1.0_air001(用于测试WouoUIPage的第一版的硬件以air001作为主控，不过内存比较小之后会考虑更换，与第一版相关的硬件资料就都放在这个文件夹下，之后版本的文件夹也会遵从这样的命名方式HardWarex.0_主控)
 |---ProjectExamples  (这个文件夹内放着使用WouoUIPage的工程的参考，按主控的类型划分，为移植时提供一些参考)
 |---Image (存放一些展示用的图片)
 ```
