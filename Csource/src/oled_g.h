@@ -1,6 +1,9 @@
 #ifndef __OLED_G_H__
 #define __OLED_G_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #include "oled_port.h"
 
@@ -44,5 +47,12 @@ void OLED_WinDrawLine(window* win,int16_t x1, int16_t y1, int16_t x2, int16_t y2
 uint8_t OLED_GetStrWidth(const char * str, uint8_t size);
 void OLED_Animation(float *a, float *a_trg, float n);
 void OLED_AllSrcFade(uint8_t Odd0OrEven1,uint8_t byte);
-uint8_t OLED_WinDrawRaderPic(window * win,const uint8_t* pic,int16_t start_x, uint16_t start_y, uint8_t width, uint8_t height, RaderDirection direct, uint8_t enable_all_point_scan, uint8_t scan_rate);
+uint8_t OLED_WinDrawRaderPic(window * win,const uint8_t* pic,int16_t start_x, uint16_t start_y, uint8_t width, uint8_t height, uint16_t * p_end_point, 
+                            RaderDirection direct, uint8_t enable_all_point_scan, uint8_t scan_rate);
+
+#ifdef __cplusplus
+}
+#endif
+
+
 #endif

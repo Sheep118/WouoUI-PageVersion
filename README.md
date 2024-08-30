@@ -16,6 +16,12 @@
   在此十分感谢WouoUI作者开源WouoUI的源码🙏🙏，这是[WouoUI的Github链接](https://github.com/RQNG/WouoUI )和[作者的b站链接](https://space.bilibili.com/9182439)。
 
   (推荐大家可以去阅读下WouoUI的源代码(Arduino)，写得非常好，逻辑相当清晰)。
+### 版本声明
+
+- 由于本项目处于改进的过程中，我将在每一个大版本(如0.1.0，0.2.0等大版中)对硬件代码进行适配；一般的小版本(如0.1.1，0.1.2等小版本中)只会在PCSimulate仿真端进行测试，不会对硬件适配的代码进行更新。
+- 因此，在小版本中，只会更新 CSource文件夹下的文件和ProjectExamples/PCSimulate文件夹下的PC端仿真工程。
+- 每次版本更新时，我会尽量保持接口函数保持不变，必要的接口函数改动也会在这个文件中同步更新，在小版本更新中我也会更新ReadMe文件(因此，如果在这个过程中需要使用旧版本，请将ReadMe文件回退到旧版本中，否则可能有一些接口函数不太一样)。
+- 具体版本更新的说明和未来更新的进度查看最底部的[项目维护](#项目维护)
 
 ### 想法由来和一些啰嗦
 
@@ -31,7 +37,7 @@ WouoUIPage版的想法是源自我自己想将使用WouoUI用到自己设置的�
 | ------ | ------------------------------------------------------------ | ------------------------------------------------------------ |
 | 依赖库 | 依赖U8g2库，适用性广，拓展性强 ；但消耗的RAM和FLASH可能会较多(特别是对于使用C语言开发而不是使用Arduino开发的情况) | 自己写的图形层驱动文件，功能比较少只提供必须用到的，纯C语言编写，对内存有限，使用C开发单片机来说比较合适；但由于没有使用U8g2库，适用性、拓展性差。(后面看看自己有没有时间将上面的这部分抽象移植到U8g2图形库上) |
 | 接口   | 原作者的所有代码都在一个.ino文件中完成，方便查看源码; 但需要读懂一部分源码才能二次开发 | 统一了一部分接口，并做了抽象，二次开发时只需要按接口文档来使用提供的接口函数 |
-| 适用性 | 原作者开发了适应多个屏幕尺寸的版本👍(这点我自己觉得可能很难做到) | 因为项目的需要，Page版只有128*64这一个尺寸适配，我也没有做其他屏幕的开发。 |
+| 适用性 | 原作者开发了适应多个屏幕尺寸的版本👍(这点我目前有计划但还在开发中) | 因为项目的需要，Page版只有128*64这一个尺寸适配，我也没有做其他屏幕的开发。 |
 
 ## 移植说明
 
@@ -89,7 +95,6 @@ OK ，到这里的话，就算移植结束了(感觉说是复制更为合适，�
 
 ```c
 #define UI_CONWIN_ENABLE            1  //是否使能 以"$ " 为开头的选项使用确认弹窗
-#define UI_MAX_PAGE_NUM             32 //页面的最大数量，这个数字需要大于所有页面的page_id
 #define UI_INPUT_MSG_QUNEE_SIZE     4  //ui内部消息对列的大小(至少需要是2)
 
 //页面类型使能宏，使用对应的页面类型，则需要开启该宏，将宏置为1，默认都开启
@@ -150,11 +155,11 @@ OK ，到这里的话，就算移植结束了(感觉说是复制更为合适，�
 
 - `CallBackFunc` : 回调函数类型，每个页面都需要一个回调函数(如果没有回调函数，在对应初始化函数中置NULL即可)。
 
-  通常需要定义一个形如`void MainPage_CallBack(uint8_t self_page_id,Option* select_item)`的函数(其中，MainPage_CallBack是由我们定义的回调函数名(地址))，并该函数地址作为参数给对应的页面初始化函数。
+  通常需要定义一个形如`void MainPage_CallBack(const Page* self_page,Option* select_item)`的函数(其中，MainPage_CallBack是由我们定义的回调函数名(地址))，并该函数地址作为参数给对应的页面初始化函数。
 
   > 在页面中的选项被click时，该页面的回调函数会被调用，
   >
-  > 传入回调函数的参数`self_page_id` 为当前页面的id(每个页面都有唯一的id，需要在对应页面初始化时传入)；
+  > 传入回调函数的参数`self_page` 为当前页面的地址(以Page*指针的形式传入，可以强转为任何页面类型)；
   >
   > 传入回调函数的参数`select_item`为当前页面被选中且click的选项(类型为Option)，可以通过读取该函数的order得知当前选中的是哪个选项，并在回调函数中进行对应的处理。
 
@@ -170,9 +175,9 @@ OK ，到这里的话，就算移植结束了(感觉说是复制更为合适，�
 
 - 接口函数只有一个
 
-  `void OLED_TitlePageInit(TitlePage * title_page, uint8_t page_id,uint8_t item_num,Option* option_array,Icon *icon_array,CallBackFunc call_back);`
+  `void OLED_TitlePageInit(TitlePage * title_page, uint8_t item_num,Option* option_array,Icon *icon_array,CallBackFunc call_back);`
 
-  >- 参数需要有TitlePage 页面对象的指针，唯一的page_id(每个页面必须有一个唯一的id);
+  >- 参数需要有TitlePage 页面对象的指针;
   >
   >- 需要注意的有 ：**item_num 表示后面 option_array(选项数组)和 icon_arra(图标数组)的数组大小，三者必须保持一致**；
   >
@@ -196,9 +201,9 @@ OK ，到这里的话，就算移植结束了(感觉说是复制更为合适，�
 
 - 同样地，接口函数只有一个
 
-  `void OLED_ListPageInit(ListPage * lp,uint8_t page_id,uint8_t item_num,Option *option_array,CallBackFunc call_back);`
+  `void OLED_ListPageInit(ListPage * lp, uint8_t item_num,Option *option_array,CallBackFunc call_back);`
 
-  >- 参数需要有ListPage 页面对象的指针，唯一的page_id(每个页面必须有一个唯一的id);
+  >- 参数需要有ListPage 页面对象的指针;
   >- 同样需要注意的是：**item_num 表示后面option_array(选项数组)的数组大小，必须保持一致** 
   >- 同时，**option_array选项数组中text字符串使用前缀表示选项的类型**
   >  - **`"~ "`  前缀表示数值弹窗**
@@ -213,11 +218,11 @@ OK ，到这里的话，就算移植结束了(感觉说是复制更为合适，�
 
   <img src="https://sheep-photo.oss-cn-shenzhen.aliyuncs.com/img/RadioPage%E6%BC%94%E7%A4%BA.png" alt="RadioPage演示" style="zoom:60%;" />
 
-- 其实，**RadioPage页面和ListPage页面是基本一样的，不同的是，对于使用`"= "` 作为text前缀的选项来说，RadioPage页面会将其处理为单选项，即，这个页面内，所有使用 `"= "` 为text前缀的选项只能有一个能被选中，以实现单选的效果。**因为，通常对于这样的选项页面，我们一整个页面内都是这种单选项，所以将其单独作为一个页面类型拿出。
+- 其实，**RadioPage页面和ListPage页面是基本一样的，不同的是，对于使用`"= "` 作为text前缀的选项来说，RadioPage页面会将其处理为单选项，即，这个页面内，所有使用 `"= "` 为text前缀的选项只能有一个能被选中，以实现单选的效果**。因为，通常对于这样的选项页面，我们一整个页面内都是这种单选项，所以将其单独作为一个页面类型拿出。
 
 - 其接口函数与ListPage基本一致：(注意事项也请参考上面😆)
 
-  `void OLED_RadioPageInit(RadioPage * rp, uint8_t page_id, uint8_t item_num,Option *option_array,CallBackFunc call_back);` 
+  `void OLED_RadioPageInit(RadioPage * rp, uint8_t item_num,Option *option_array,CallBackFunc call_back);` 
 
   唯一一点区别，可能就是第一个参数的类型，需要是RadioPage类型。
 
@@ -229,9 +234,9 @@ OK ，到这里的话，就算移植结束了(感觉说是复制更为合适，�
 
 - WavePage页面有两个接口函数
 
-1. `void OLED_WavePageInit(WavePage * wp, uint8_t page_id, uint8_t item_num, Option *option_array, CallBackFunc call_back);`  （照例是初始化函数）
+1. `void OLED_WavePageInit(WavePage * wp,  uint8_t item_num, Option *option_array, CallBackFunc call_back);`  （照例是初始化函数）
 
-   >- 参数需要有WavePage 页面对象的指针，唯一的page_id(每个页面必须有一个唯一的id);
+   >- 参数需要有WavePage 页面对象的指针;
    >- 同样需要注意的是：**item_num 表示后面option_array(选项数组)的数组大小，必须保持一致** 
    >
    >- **与其他页面不同的是，WavePage 页面选项text的字符串前缀均没有特殊意义，同时也不建议在WavePage页面使用选项前缀，因为需要显示波形的关系，选项字符串的大小最好不要超过5个字符，因此就不加前缀占用多余的字符了**
@@ -259,9 +264,9 @@ OK ，到这里的话，就算移植结束了(感觉说是复制更为合适，�
 
 - RaderPicPage 类只有一个接口函数(就是初始化函数)
 
-  `void OLED_RaderPicPageInit(RaderPicPage* rpp,uint8_t page_id,uint8_t pic_num,RaderPic * pic_array,RaderPicMode mode,CallBackFunc cb);`
+  `void OLED_RaderPicPageInit(RaderPicPage* rpp,uint8_t pic_num,RaderPic * pic_array,RaderPicMode mode,CallBackFunc cb);`
 
-  >- 参数需要有RaderPicPage 页面对象的指针，唯一的page_id(每个页面必须有一个唯一的id);
+  >- 参数需要有RaderPicPage 页面对象的指针;
   >
   >- 需要注意的是，**pic_num是后面pic_array数组的数组大小，必须保持一致** ，同时，这里有一个RaderPicPage页面才会用到的类(结构体类型)RaderPic，详情在下方。
   >- 同时，**mode成员为一个枚举类型，用于设置页面图片全部绘制完成后的操作，有两个可取值**
@@ -306,9 +311,9 @@ OK ，到这里的话，就算移植结束了(感觉说是复制更为合适，�
 
 #### DigitalPage 页面相关的接口函数有三个:
 
-- `void OLED_DigitalPageInit(DigitalPage* dp, uint8_t page_id, Option * option_array, uint8_t  label_array_num, String * label_array, char gap_char, uint8_t gap_shine_time, uint8_t uline_shine_time,CallBackFunc cb);`
+- `void OLED_DigitalPageInit(DigitalPage* dp, Option * option_array, uint8_t  label_array_num, String * label_array, char gap_char, uint8_t gap_shine_time, uint8_t uline_shine_time,CallBackFunc cb);`
 
-   >- 参数需要有DigitalPage 页面对象的指针，唯一的page_id(每个页面必须有一个唯一的id);
+   >- 参数需要有DigitalPage 页面对象的指针;
    >
    >- 需要注意的参数有：
    >
@@ -375,20 +380,30 @@ DigitalPage页面运行的状态机如下图所示：有兴趣的可以看看�
 ```c
 //用于向UI传递一个消息Msg(msg_click/msg_up/msg_down/msg_return)
 void OLED_MsgQueSend(InputMsg msg);
-//UI必要的一些参数和变量的初始化
-void OLED_UiInit(void);
+//切换当前UI的操作对象为内置的默认UI对象
+void OLED_SelectDefaultUI(void);
+//设置当前操作的UI对象
+void OLED_SetCurrentUI(WouoUI *ui);
+//生成一个新的UI对象必要的初始化流程
+//(这个还需要改进,只是初始化一个带参数的UI对象没有意义，需要带上对应的画点函数才有意义)
+void OLED_NewUI(WouoUI *ui, UiPara *ui_para);
 //UI运行任务，需要放在主循环中循环调用，而且尽量不要阻塞
 void OLED_UIProc(void);
-//从一个页面跳转到另一个页面，常用于回调函数中调用，并确定页面的上下级关系(这样，在terminate_page页面收到return消息时，会返回self_page_id所代表的页面)
-//@param self_page_id 是当前页面的id（回调函数中有这个参数）
-//@param  terminate_page 要跳转的那个页面的地址(不需要理会是那种类型的页面，直接将页面地址作为参数传入即可)
-void OLED_UIJumpToPage(uint8_t self_page_id,PageAddr terminate_page);
-//切换当前页面的函数，与Jump函数不同的时，这个函数不会绑定上下级页面关系，
-//terminate_page 页面收到return 消息不会返回当前页面(常用于临时的画面切换)
-//@param terminate_page 要跳转的那个页面的地址(不需要理会是那种类型的页面，直接将页面地址作为参数传入即可)
+/* 
+* 从一个页面跳转到另一个页面，常用于回调函数中调用，并确定页面的上下级关系(这样，在terminate_page页面收到return消息时，会返回self_page_id所代表的页面)
+@param self_page 是当前页面的地址（回调函数中第一个参数强转为通用地址类型PageAddr传入即可）
+@param  terminate_page 要跳转的那个页面的地址(不需要理会是那种类型的页面，直接将页面地址作为参数传入即可)
+*/
+void OLED_UIJumpToPage(PageAddr self_page,PageAddr terminate_page);
+/*
+* 切换当前页面的函数，与Jump函数不同的时，这个函数不会绑定上下级页面关系，terminate_page 页面收到return 消息不会返回当前页面(常用于临时的画面切换)
+@param terminate_page 要跳转的那个页面的地址(不需要理会是那种类型的页面，直接将页面地址作为参数传入即可)
+*/
 void OLED_UIChangeCurrentPage(PageAddr terminate_page);
-/*获取当前页面的id*/
-uint8_t OLED_UIGetCurrentPageID(void);
+/*
+@ attention:得到当前所处页面的指针(地址)
+*/
+Page* OLED_GetCurrentPage(void);
 ```
 
 需要注意的只有：
@@ -454,7 +469,7 @@ WouoUIPage的参数基本上WouoUI原作保持一致，如下:(由于我没有�
 
 ### 关于UI层
 
-- `PageAddr` 页面地址变量，其实是一个 `void*` 类型，为了用于实现 `OLED_UIJumpToPage` 函数和 `OLED_UIChangeCurrentPage` 函数的 "伪多态"。(其实内部所有`AnimInit` 、 `Show` 、 `React` 函数都使用这样的"伪多态") 。
+- `PageAddr` 页面地址变量，其实是一个 `void*` 类型，为了用于实现 `OLED_UIJumpToPage` 函数和 `OLED_UIChangeCurrentPage` 函数的 "伪多态"。(其实内部所有`AnimInit` 、 `Show` 、 `React` 函数都使用这样的**伪多态**) 。
 
   在获取页面地址后，直接强转为 `Page` 类，这是一个所有页面类型都必须包含的结构体成员(且必须是第一个，为了方便转换类型)。`Page` 类中包含了所有页面必须有的一些成员，如下：
 
@@ -466,8 +481,7 @@ WouoUIPage的参数基本上WouoUI原作保持一致，如下:(由于我没有�
   typedef struct 
   {
     PageType page_type; //页面类型，以便在处理时调用不同函数绘制
-    uint8_t page_id; //页面的序号，每个页面唯一一个，用于指示在数组中的位置，方便跳转
-    uint8_t last_page_id; //上一个页面的id，用于返回时使用
+    PageAddr last_page;  //父页面的地址
     CallBackFunc cb; //页面的回调函数
     PageAniInit ani_init; 
     PageShow show;
@@ -485,11 +499,24 @@ WouoUIPage的参数基本上WouoUI原作保持一致，如下:(由于我没有�
 
 ## 项目维护
 
+### 项目版本更新的说明
+- 0.1.0版 稳定的版本有在两个硬件上移植测试过的版本；
+- 0.1.1版 
+  - 将全局数组去掉，改为指针连接上级页面，支持理论上无限多个页面，不再受数组大小的限制。
+  - UI文件中的变量整理归类，使代码体积占用更小(会在下一个大版本中给出具体的代码内存占用数据)。
+  - 修复在弹窗时页面跳转的bug。
+
+### 项目长期的改进需求
+
 目前项目有以下的改进需求，会逐步展开😶。
 
 - [x] ~~PC电脑端的测试环境，方便编写UI进行代码测试。（已完成，在ProjectExamples下有使用例子）~~
 - [ ] 添加sleep的运行状态，在没有消息传入时不会一直刷新页面占用CPU。
-
 - [ ] 适配多种大小的单色屏小屏幕（200*200px以上的大屏幕不在我想支持的范围内，因为对于这类屏幕有更合适的UI），支持文字过长时的自适应滚动。
 - [ ] 支持中文，能够以方便的方式设置UI的字体，同时不会产生太大的内存占用（使用这类小屏幕应用的单片机，一般内存不会太大，因此维持这个框架的轻量也是必要的）。
 - [ ] 移植底层适配U8g2的版本，顶层接口基本不改变。
+
+### 其他
+- 项目使用第一版硬件[Air001的小时钟](https://www.bilibili.com/video/BV1J6421g7H1/) 由于RAM和Flash的限制，在下两个大版本后可能适配(个人精力是在有限，有uu可以帮忙适配更多的硬件那就更好了)。
+
+- 第二版的硬件加入了立创的星火计划(目前正在忙里偷闲的进行钟，使用stmf103RCT6芯片，第二版的硬件上WouoPage只是作为一小部分，多合一的USB设备是我努力的重点，到时候可能会讲讲如果使用HAL库实现多合一的USB设备😀)。

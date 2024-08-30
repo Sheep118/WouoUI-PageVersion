@@ -1,26 +1,14 @@
 #include "TestUI.h"
+#include "../WouoUIPage/oled_ui.h"
 #include "string.h"
 #include "math.h"
-#include "System.h"
 
-//-------枚举id，唯一标识一个页面，防止有两个页面使用同一id
-enum
-{
-    main_page_id = 0x00,
-        logo_page_id,
-        setting_page_id,
-        curve_page_id,
-        lock_page_id,
-        about_page_id,
-            about_wououi_page_id,
-            about_page_version_id,
-};
 //--------定义页面对象
 TitlePage main_page;
 RaderPicPage logo_page;
 ListPage setting_page;
 WavePage curve_page;
-DigitalPage lock_page;
+DigitalPage lock_page,lock_page2;
 ListPage about_page;
 RadioPage about_wououi_page; //这两个相关页使用单选项RadioPage类型只是为了展示单选项页面而已
 RadioPage about_page_version_page;
@@ -170,7 +158,13 @@ int16_t n = 0; //曲线横坐标自增变量
 //Lock页面参数
 Option lock_option_array[3] =  //由于Digital页面有三个数字选项，所以，digital页面选项数组大小必须为3
 {//{ order,max,min,step,int_val,text,} //option的成员顺序
+    {.item_max = 59 , .item_min = 0, .step = 1, .val = 0, .text = NULL}, 
     {.item_max = 99 , .item_min = 0, .step = 1, .val = 0, .text = NULL}, 
+    {.item_max = 99 , .item_min = 0, .step = 1, .val = 0, .text = NULL},  //设置每一个数字的上限值和步长 
+} ;
+Option lock_option_array2[3] =  //由于Digital页面有三个数字选项，所以，digital页面选项数组大小必须为3
+{//{ order,max,min,step,int_val,text,} //option的成员顺序
+    {.item_max = 77 , .item_min = 0, .step = 1, .val = 0, .text = NULL}, 
     {.item_max = 99 , .item_min = 0, .step = 1, .val = 0, .text = NULL}, 
     {.item_max = 99 , .item_min = 0, .step = 1, .val = 0, .text = NULL},  //设置每一个数字的上限值和步长 
 } ;
@@ -213,41 +207,41 @@ Option about_pageversion_array[ABOUT_PAGEVERSION_NUM] =
 };
 //--------定义每个页面的回调函数
 
-void MainPage_CallBack(uint8_t self_page_id,Option* select_item)
+void MainPage_CallBack(const Page* cur_page_addr,Option* select_item)
 {
     switch (select_item->order)
     {
-        case 0: OLED_UIJumpToPage(self_page_id,&logo_page); break;
-        case 1: OLED_UIJumpToPage(self_page_id,&setting_page);  break;
-        case 2: OLED_UIJumpToPage(self_page_id,&curve_page); break;
-        case 3: OLED_UIJumpToPage(self_page_id,&lock_page); break;
-        case 4: OLED_UIJumpToPage(self_page_id,&about_page); break;
+        case 0: OLED_UIJumpToPage((PageAddr)cur_page_addr,&logo_page); break;
+        case 1: OLED_UIJumpToPage((PageAddr)cur_page_addr,&setting_page);  break;
+        case 2: OLED_UIJumpToPage((PageAddr)cur_page_addr,&curve_page); break;
+        case 3: OLED_UIJumpToPage((PageAddr)cur_page_addr,&lock_page); break;
+        case 4: OLED_UIJumpToPage((PageAddr)cur_page_addr,&about_page); break;
         default: break;
     }
 }
 
-void SettingPage_CallBack(uint8_t self_page_id,Option* select_item)
+void SettingPage_CallBack(const Page* cur_page_addr,Option* select_item)
 {
     switch (select_item->order) //对选中项的真实参数值赋值
     { //由于第0项是说明文字“Setting”
-        case 1: ui_para.ani_param[TILE_ANI] = select_item->val;break;//ani_tile
-        case 2: ui_para.ani_param[LIST_ANI] = select_item->val;break;//ani_list
-        case 3: ui_para.ufd_param[TILE_UFD] = select_item->val;break;//ani_tile
-        case 4: ui_para.ufd_param[LIST_UFD] = select_item->val;break;//ani_list
-        case 5: ui_para.loop_param[TILE_UFD] = select_item->val;break;//loop_tile
-        case 6: ui_para.loop_param[LIST_UFD] = select_item->val;break;//loop_list
-        case 7: ui_para.valwin_broken = select_item->val;break;//ValWin Broken
-        case 8: ui_para.conwin_broken = select_item->val;break;//ConWin Broken
-        case 9: ui_para.digital_ripple = select_item->val;break;//Digital Ripple Enable/not
-        case 10: ui_para.raderpic_scan_mode = select_item->val;break;//RaderPic scan mode
-        case 11: ui_para.raderpic_scan_rate = select_item->val;break;//RaderPic scan rate
-        case 12: ui_para.raderpic_move_rate = select_item->val;break;//RaderPic move rate
+        case 1: g_default_ui_para.ani_param[TILE_ANI] = select_item->val;break;//ani_tile
+        case 2: g_default_ui_para.ani_param[LIST_ANI] = select_item->val;break;//ani_list
+        case 3: g_default_ui_para.ufd_param[TILE_UFD] = select_item->val;break;//ani_tile
+        case 4: g_default_ui_para.ufd_param[LIST_UFD] = select_item->val;break;//ani_list
+        case 5: g_default_ui_para.loop_param[TILE_UFD] = select_item->val;break;//loop_tile
+        case 6: g_default_ui_para.loop_param[LIST_UFD] = select_item->val;break;//loop_list
+        case 7: g_default_ui_para.valwin_broken = select_item->val;break;//ValWin Broken
+        case 8: g_default_ui_para.conwin_broken = select_item->val;break;//ConWin Broken
+        case 9: g_default_ui_para.digital_ripple = select_item->val;break;//Digital Ripple Enable/not
+        case 10: g_default_ui_para.raderpic_scan_mode = select_item->val;break;//RaderPic scan mode
+        case 11: g_default_ui_para.raderpic_scan_rate = select_item->val;break;//RaderPic scan rate
+        case 12: g_default_ui_para.raderpic_move_rate = select_item->val;break;//RaderPic move rate
     default:
       break;
     }
 }
 
-void LockPage_CallBack(uint8_t self_page_id,Option* select_item)
+void LockPage_CallBack(const Page* cur_page_addr,Option* select_item)
 {
     switch (select_item->order)
     {
@@ -260,18 +254,19 @@ void LockPage_CallBack(uint8_t self_page_id,Option* select_item)
             }
             else if(strcmp(select_item->text, lock_label_array[1]) == 0) //“Clear All”
                 OLED_DigitalPage_UpdateDigitalNumAnimation(&lock_page, 0, 0, 0, Digital_Direct_Increase);
-                break;
+            break;
         default:
             break;
     }
 }
 
-void About_CallBack(uint8_t self_page_id,Option* select_item)
+void About_CallBack(const Page* cur_page_addr,Option* select_item)
 {
     switch (select_item->order)
     {//第0项是说明文字
-        case 1: OLED_UIJumpToPage(self_page_id,&about_wououi_page); break;
-        case 2: OLED_UIJumpToPage(self_page_id,&about_page_version_page); break;
+        case 0: OLED_UIChangeCurrentPage(&lock_page2);break; //两个数字页面的测试
+        case 1: OLED_UIJumpToPage((PageAddr)cur_page_addr,&about_wououi_page); break;
+        case 2: OLED_UIJumpToPage((PageAddr)cur_page_addr,&about_page_version_page); break;
         default: break;
     }
 }
@@ -288,45 +283,50 @@ int16_t Triangle_Func(int16_t x)
 }
 
 //--------------给主函数调用的接口函数
-
 void TestUI_Init(void)
 {
-    OLED_Init();  //硬件的初始化
-    LL_mDelay(100);
+
+    //OLED_Init();  //硬件的初始化
     OLED_ClearBuff(); //清空缓存
     OLED_RefreshBuff(); //刷新屏幕(清空屏幕)
     OLED_SetPointColor(1); //设置绘制颜色
-    OLED_UiInit();  //必要的ui参数初始化
     //补充列表页面的初值
-    setting_option_array[1].val = ui_para.ani_param[TILE_ANI];
-    setting_option_array[2].val = ui_para.ani_param[LIST_ANI];
-    setting_option_array[3].val = ui_para.ani_param[TILE_UFD];
-    setting_option_array[4].val = ui_para.ani_param[LIST_UFD];
-    setting_option_array[5].val = ui_para.ani_param[TILE_LOOP];
-    setting_option_array[6].val = ui_para.ani_param[LIST_LOOP];
-    setting_option_array[7].val = ui_para.valwin_broken;
-    setting_option_array[8].val = ui_para.conwin_broken;
-    setting_option_array[9].val = ui_para.digital_ripple;
-    setting_option_array[10].val = ui_para.raderpic_scan_mode;
-    setting_option_array[11].val = ui_para.raderpic_scan_rate;
-    setting_option_array[12].val = ui_para.raderpic_move_rate;
+    setting_option_array[1].val = g_default_ui_para.ani_param[TILE_ANI];
+    setting_option_array[2].val = g_default_ui_para.ani_param[LIST_ANI];
+    setting_option_array[3].val = g_default_ui_para.ani_param[TILE_UFD];
+    setting_option_array[4].val = g_default_ui_para.ani_param[LIST_UFD];
+    setting_option_array[5].val = g_default_ui_para.ani_param[TILE_LOOP];
+    setting_option_array[6].val = g_default_ui_para.ani_param[LIST_LOOP];
+    setting_option_array[7].val = g_default_ui_para.valwin_broken;
+    setting_option_array[8].val = g_default_ui_para.conwin_broken;
+    setting_option_array[9].val = g_default_ui_para.digital_ripple;
+    setting_option_array[10].val = g_default_ui_para.raderpic_scan_mode;
+    setting_option_array[11].val = g_default_ui_para.raderpic_scan_rate;
+    setting_option_array[12].val = g_default_ui_para.raderpic_move_rate;
     //设置界面选项
-    OLED_TitlePageInit(&main_page, main_page_id, MAIN_PAGE_NUM, mian_option_array, main_icon_array, MainPage_CallBack);
-    OLED_RaderPicPageInit(&logo_page, logo_page_id,  LOGO_PAGE_NUM, logo_rpp_array,Rader_Pic_Mode_Loop, NULL);
-    OLED_ListPageInit(&setting_page, setting_page_id, SETTING_PAGE_NUM, setting_option_array, SettingPage_CallBack);
-    OLED_WavePageInit(&curve_page, curve_page_id, CURVE_PAGE_NUM, curve_option_array, NULL);
-    OLED_DigitalPageInit(&lock_page, lock_page_id, lock_option_array, LOCK_PAGE_LABEL_NUM, lock_label_array, '-', 0, 50, LockPage_CallBack);
-    OLED_ListPageInit(&about_page, about_page_id,  ABOUT_PAGE_NUM, about_option_array, About_CallBack);
-    OLED_RadioPageInit(&about_wououi_page, about_wououi_page_id,  ABOUT_WOUOUI_PAGE_NUM, about_wououi_option_array, NULL);
-    OLED_RadioPageInit(&about_page_version_page,about_page_version_id,  ABOUT_PAGEVERSION_NUM, about_pageversion_array, NULL);
+    OLED_TitlePageInit(&main_page, MAIN_PAGE_NUM, mian_option_array, main_icon_array, MainPage_CallBack);
+    OLED_RaderPicPageInit(&logo_page,  LOGO_PAGE_NUM, logo_rpp_array,Rader_Pic_Mode_Loop, NULL);
+    OLED_ListPageInit(&setting_page,  SETTING_PAGE_NUM, setting_option_array, SettingPage_CallBack);
+    OLED_WavePageInit(&curve_page,  CURVE_PAGE_NUM, curve_option_array, NULL);
+    OLED_DigitalPageInit(&lock_page,  lock_option_array, LOCK_PAGE_LABEL_NUM, lock_label_array, '-', 0, 50, LockPage_CallBack);
+    OLED_ListPageInit(&about_page,   ABOUT_PAGE_NUM, about_option_array, About_CallBack);
+    OLED_RadioPageInit(&about_wououi_page, ABOUT_WOUOUI_PAGE_NUM, about_wououi_option_array, NULL);
+    OLED_RadioPageInit(&about_page_version_page,  ABOUT_PAGEVERSION_NUM, about_pageversion_array, NULL);
+    OLED_DigitalPageInit(&lock_page2,  lock_option_array2, LOCK_PAGE_LABEL_NUM, lock_label_array, '-', 0, 50, LockPage_CallBack);
 }
 
 
 void TestUI_Proc(void)
 {
+    static uint16_t count = 0; //延时计数变量(用于波形的延时)
     OLED_UIProc();
-    OLED_UIWaveUpdateVal(&(curve_option_array[0]), sin(0.1*n)*(curve_option_array[0].item_max)*0.75); 
-    OLED_UIWaveUpdateVal(&(curve_option_array[1]), Triangle_Func(n)); 
-    n++;
+    if(count == 10)
+    {
+        OLED_UIWaveUpdateVal(&(curve_option_array[0]), sin(0.04*n)*(curve_option_array[0].item_max)*0.9); 
+        // OLED_UIWaveUpdateVal(&(curve_option_array[1]), Triangle_Func(n)); 
+        n++;
+        count = 0;
+    }
+    count++;
 }
 

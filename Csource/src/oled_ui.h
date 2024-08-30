@@ -1,5 +1,18 @@
+/*
+版本更新的日志记录：
+2024年8月29日：<0.1.1> 不再使用全局数组，使用指针代替，可以动态添加不限个数的页面。
+改进方向：[ ] 将底层绘制函数和w_all合并入WouoUI对象，便于多个UI对象的同时使用
+         [ ] 将各个参数改为页面百分比，实现多尺寸页面的适配 
+         [ ] 加入中文显示的支持，
+*/
+
 #ifndef __OLED_UI_H__
 #define __OLED_UI_H__
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 
 #include "oled_g.h"
 #include "oled_conf.h"
@@ -79,9 +92,11 @@
 #define   DIGITAL_NUM_T_S     8                           //数字到外框的边距
 #define   DIGITAL_NUM_SIZE    24                          //数字的尺寸
 #define   DIGITAL_Label_SIZE  16                          //数字的尺寸
-#define DIGITAL_NUM_INDEX_MAX  6                          //digital页面共有6个数字
+#define   DIGITAL_NUM_INDEX_MAX  6                          //digital页面共有6个数字
 
 /*============================================类型声明=========================================*/
+//--------UI对象类型
+typedef struct _WouoUI WouoUI;
 //--------页面类型枚举
 typedef enum 
 {
@@ -111,8 +126,9 @@ typedef struct
   //其实单选列表项，需使用其他项在应用层关联跳转单选终端页面实现(单选列表项必须使用=做字符串开头)。
 } Option; //通用选项类,其中item_max,item_min,entity与列表选项(单选/多选/弹窗项)相关，磁贴选项可不管
 //选择类界面的回调函数类型定义,参数为确认选中项的指针。
-typedef void (*CallBackFunc)(uint8_t self_page_id,Option* select_item);
-
+typedef struct _page Page; //页面基类的声明,方便作为回调函数参数
+//更改回调函数直接传入当前页面的页面地址
+typedef void (*CallBackFunc)(const Page* cur_page_addr,Option* select_item);
 typedef const uint8_t Icon[ICON_BUFFSIZE];  //定义图标类型
 //页面地址类型，用于声明全局页面数组存放页面使用
 #define PageAddr void*
@@ -121,16 +137,15 @@ typedef void (*PageAniInit)(PageAddr);  //页面的动画初始化函数
 typedef void (*PageShow)(PageAddr);    //页面的展示函数
 typedef void (*PageReact)(PageAddr);  //页面的响应函数
 
-typedef struct 
+struct _page
 {
   PageType page_type; //页面类型，以便在处理时调用不同函数绘制
-  uint8_t page_id; //页面的序号，每个页面唯一一个，用于指示在数组中的位置，方便跳转
-  uint8_t last_page_id; //上一个页面的id，用于返回时使用
+  PageAddr last_page;  //父页面的地址
   CallBackFunc cb; //页面的回调函数
   PageAniInit ani_init;
   PageShow show;
   PageReact react;
-} Page; //最基本的页面类型(所有页面类型的基类和结构体的**第一个成员**)
+}; //最基本的页面类型(所有页面类型的基类和结构体的**第一个成员**)
 
 //----------5种页面类
 typedef struct 
@@ -140,15 +155,6 @@ typedef struct
   Option  *option_array; //选项类型的数组(由于数组大小不确定，使用指针代替)
   Icon    *icon_array ; //图标数组(由于数组大小不确定，使用指针代替)
   uint8_t select_item; //选中选项
-
-  float   icon_x; //图标的x坐标距选中目标的间距的变量
-  float   icon_x_trg;//图标的x坐标距选中目标的间距的变量目标
-  float   icon_y;//图标的y坐标
-  float   icon_y_trg;//图标的y坐标目标
-  float   indi_x; //指示器的x坐标
-  float   indi_x_trg;//指示器的x坐标目标值
-  float   title_y;//标题的y坐标
-  float   title_y_trg;//标题的y坐标目标值
 } TitlePage; //磁帖页面类型(所有类型页面，类型成员为第一个，方便查看)
 
 typedef struct
@@ -157,17 +163,8 @@ typedef struct
   uint8_t item_num ; //页面选项个数，title和icon个数需与此一致
   uint8_t select_item; //选中选项
   Option  *option_array; //选项类型的数组(由于数组大小不确定，使用指针代替)
-
-  uint8_t slip_flag;   //切换动画是否完成的标志位
-  uint8_t line_n; // = DISP_H / LIST_LINE_H; 屏幕内有多少行选项
-  float y;            //列表中每个选项的间隔值
-  float y_trg;        //列表中每个选项间隔的目标值
-  float box_x;        //选中框x
-  float box_x_trg;    //选中框x的目标值
-  float box_y;        //选中框y
-  float box_y_trg;    //选中框y的目标值
-  float bar_y;        //进度条的y值
-  float bar_y_trg;    //进度条的y目标值
+  uint8_t line_n; // = DISP_H / LIST_LINE_H; 屏幕内有多少行选
+  float box_y_trg;//选中框y的目标值(这个变量放在每一个页面中，用于推算正真的页面的起始y坐标值)
 } ListPage; //列表页面类型(所有类型页面，类型成员为第一个，方便查看)
 
 #if PAGE_WAVE_ENABLE
@@ -192,14 +189,12 @@ typedef struct
 {
   Page page; //基类
 //镭射界面回调函数，传入已经绘制完成的pic序号
-//为了方便在镭射图片界面，绘制自己想要的其他元素(如文字提示，在模式为Rader_Pic_Mode_Hold是，会不断绘制已完成的图片并不断调用回调函数)
+//为了方便在镭射图片界面，绘制自己想要的其他元素(如文字提示，在模式为Rader_Pic_Mode_Hold时，会不断绘制已完成的图片并不断调用回调函数)
   uint8_t pic_num ; //页面pic个数，pic_array数组大小需与此一致
   uint8_t rader_pic_mode:2; //结束之后的操作
   RaderPic* pic_array; //镭射图片数组
-
   uint8_t cur_pic_index; //当前正在绘制完成的pic序号(0~pic_num-1)
-  float move_x;
-  float move_y;
+  uint16_t pic_end_point; //中断是图片扫描的断点标识
 } RaderPicPage; //镭射图片页面对象
 
 typedef enum
@@ -247,20 +242,9 @@ typedef struct
     Option * option_array; //选项数组，数组大小必须为3 ，用于显示三个数字
     uint8_t  label_array_num; // 标签数组的大小
     String * label_array;  //标签数组，方便标签滚动
-
-    DigitalPosIndex select_index:4; //选中项的index
-    uint8_t digital_num_pos; //0表示没有选中位置，1-7bit每一位置1表示该位被选中
-    uint8_t temp_ripple_index; //用于在ripple时记录选中位置(选中最低位位置开始，慢慢往上增)
-    DigitalDirect dir:2;  //用于Digital Show和React函数间传递信号
-    DigitalMode mod:2;    //digital页面的模式
     uint8_t select_label_index;  //在标签数组中选中的标签的index
-    window w_digtal[2]; //用限制数字时钟的窗口(1个数字窗口+1个label窗口) 2个窗口
-    float rect_y; //移动外框的顶点坐标
-    float rect_y_trg; //移动外框的顶点坐标目标
-    float label_y; //移动外框的顶点坐标
-    float label_y_trg; //移动外框的顶点坐标目标
-    float num_y;   //移动数字的顶点坐标
-    float num_y_trg;   //移动数字的顶点坐标目标
+    DigitalPosIndex select_index:4; //选中项的index
+    DigitalMode mod:2;    //digital页面的当前模式
 } DigitalPage; //时间页面
 
 #endif
@@ -286,8 +270,6 @@ enum _ani_kind //动画速度类别(数组中的下标)
   TILE_ANI = 0x00,     //磁贴动画速度
   LIST_ANI,     //列表动画速度
   WIN_ANI,      //弹窗动画速度
-  // SPOT_ANI,     //聚光动画速度
-  // FADE_ANI,     //消失动画速度
   TAG_ANI,      //标签动画速度
   DIGI_ANI,     //数字动画滚动速度
   AIN_ALL_NUM,  //动画速度参数的数目，用于数组初始化
@@ -326,51 +308,64 @@ typedef struct
   uint8_t ufd_param[UFD_ALL_NUM]; //展开参数数组
   uint8_t loop_param[LOOP_ALL_NUM];  //循环参数数组
 } UiPara;  //UI参数集合类型
-extern UiPara ui_para; //共外部使用的全局UI参数变量
+extern UiPara g_default_ui_para; //共外部使用的全局UI参数变量
 
 extern window w_all; //这个窗口是ui绘制时的全局窗口，可供外界自由绘制
 
 /*============================================接口函数=========================================*/
-void OLED_TitlePageInit(TitlePage * title_page, uint8_t page_id,uint8_t item_num,Option* option_array,Icon *icon_array,CallBackFunc call_back);
-void OLED_ListPageInit(ListPage * lp,uint8_t page_id,uint8_t item_num,Option *option_array,CallBackFunc call_back);
+void OLED_TitlePageInit(TitlePage * title_page, uint8_t item_num,Option* option_array,Icon *icon_array,CallBackFunc call_back);
+void OLED_ListPageInit(ListPage * lp,uint8_t item_num,Option *option_array,CallBackFunc call_back);
 //用于向UI传递一个消息Msg(msg_click/msg_up/msg_down/msg_return)
 void OLED_MsgQueSend(InputMsg msg);
-//UI必要的一些参数和变量的初始化
-void OLED_UiInit(void);
+//切换当前UI的操作对象为内置的默认UI对象
+void OLED_SelectDefaultUI(void);
+//设置当前操作的UI对象
+void OLED_SetCurrentUI(WouoUI *ui);
+//生成一个新的UI对象必要的初始化流程
+//(这个还需要改进,只是初始化一个带参数的UI对象没有意义，需要带上对应的画点函数才有意义)
+void OLED_NewUI(WouoUI *ui, UiPara *ui_para);
 //UI运行任务，需要放在主循环中循环调用，而且尽量不要阻塞
 void OLED_UIProc(void);
 /* 
 * 从一个页面跳转到另一个页面，常用于回调函数中调用，并确定页面的上下级关系(这样，在terminate_page页面收到return消息时，会返回self_page_id所代表的页面)
-@param self_page_id 是当前页面的id（回调函数中有这个参数）
+@param self_page 是当前页面的地址（回调函数中第一个参数强转为通用地址类型PageAddr传入即可）
 @param  terminate_page 要跳转的那个页面的地址(不需要理会是那种类型的页面，直接将页面地址作为参数传入即可)
 */
-void OLED_UIJumpToPage(uint8_t self_page_id,PageAddr terminate_page);
+void OLED_UIJumpToPage(PageAddr self_page,PageAddr terminate_page);
 /*
 * 切换当前页面的函数，与Jump函数不同的时，这个函数不会绑定上下级页面关系，terminate_page 页面收到return 消息不会返回当前页面(常用于临时的画面切换)
 @param terminate_page 要跳转的那个页面的地址(不需要理会是那种类型的页面，直接将页面地址作为参数传入即可)
 */
 void OLED_UIChangeCurrentPage(PageAddr terminate_page);
-/*获取当前页面的id*/
-uint8_t OLED_UIGetCurrentPageID(void);
+/*
+@ attention:得到当前所处页面的指针(地址)
+*/
+Page* OLED_GetCurrentPage(void);
 
 
 #if PAGE_WAVE_ENABLE
-void OLED_WavePageInit(WavePage * wp, uint8_t page_id, uint8_t item_num, Option *option_array, CallBackFunc call_back);
+void OLED_WavePageInit(WavePage * wp, uint8_t item_num, Option *option_array, CallBackFunc call_back);
 void OLED_UIWaveUpdateVal(Option * op, int16_t val);
 #endif
 
 #if PAGE_RADIO_ENABLE 
-void OLED_RadioPageInit(RadioPage * rp, uint8_t page_id, uint8_t item_num,Option *option_array,CallBackFunc call_back);
+void OLED_RadioPageInit(RadioPage * rp, uint8_t item_num,Option *option_array,CallBackFunc call_back);
 #endif
 
 #if PAGE_RADERPIC_ENABLE
-void OLED_RaderPicPageInit(RaderPicPage* rpp,uint8_t page_id,uint8_t pic_num,RaderPic * pic_array,RaderPicMode mode,CallBackFunc cb) ;
+void OLED_RaderPicPageInit(RaderPicPage* rpp,uint8_t pic_num,RaderPic * pic_array,RaderPicMode mode,CallBackFunc cb) ;
 #endif
 
 #if PAGE_DIGITAL_ENABLE
-void OLED_DigitalPageInit(DigitalPage* dp, uint8_t page_id, Option * option_array, uint8_t  label_array_num, String * label_array, char gap_char, uint8_t gap_shine_time, uint8_t uline_shine_time,CallBackFunc cb);
+void OLED_DigitalPageInit(DigitalPage* dp, Option * option_array, uint8_t  label_array_num, String * label_array, char gap_char, uint8_t gap_shine_time, uint8_t uline_shine_time,CallBackFunc cb);
 void OLED_DigitalPage_UpdateDigitalNumAnimation(DigitalPage * dp, uint8_t leftval, uint8_t midval, uint8_t rightval, DigitalDirect dir);
 void OLED_DigitalPage_UpdateLabelAnimation(DigitalPage * dp, uint8_t label_index, DigitalDirect dir);
 #endif
+
+#ifdef __cplusplus
+}
+#endif
+
+
 
 #endif

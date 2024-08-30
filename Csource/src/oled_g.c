@@ -415,6 +415,8 @@ void OLED_WinDrawLine(window* win,int16_t x1, int16_t y1, int16_t x2, int16_t y2
 * @param : [in] win 显示的窗口对象
 * @param : [in] pic 显示的图片对象
 * @param : [in] start_x，start_y,width,height,图片的左上角(x,y) 和宽高
+* @param : [in&out] p_end_point,传入图片的扫描停止点的计数变量 ，用于标志当前图片扫描停止在哪一个点，
+					若扫描完成该变量置0，方便下一次扫描；若传入为0，则表示刚开始扫描
 * @param : [in] direct 射线方向，枚举类型RaderDirection
 * @param : [in] enable_all_point_scan true/Fasle，Fasle的话，只有图片亮的点才会生成射线扫描
 * @param : [in] scan_rate 扫描的速度，值越大越快
@@ -423,19 +425,20 @@ void OLED_WinDrawLine(window* win,int16_t x1, int16_t y1, int16_t x2, int16_t y2
 * @author : Sheep
 * @date : 23/11/15
 */
-uint8_t OLED_WinDrawRaderPic(window * win,const uint8_t* pic,int16_t start_x, uint16_t start_y, uint8_t width, uint8_t height, RaderDirection direct, uint8_t enable_all_point_scan, uint8_t scan_rate)
+uint8_t OLED_WinDrawRaderPic(window * win,const uint8_t* pic,int16_t start_x, uint16_t start_y, uint8_t width, uint8_t height, uint16_t * p_end_point,
+							 RaderDirection direct, uint8_t enable_all_point_scan, uint8_t scan_rate)
 {
-	static uint16_t now_end_point = 1; //静态计数变量（允许在描文字的过程中被打断）
 	uint8_t mask = 1, horizon_line_flag = 0, ret = 0;
 	int16_t x = 0, y = 0;
 	uint16_t i = 0,array_index = 0;
+	if(*p_end_point == 0 )*p_end_point = 1; //传入图片的扫描停止点的计数变量（允许在描文字的过程中被打断）
 	if(pic == NULL) return 0; //如果图像为null，直接返回0，表示未完成
 	//绘制前面绘制好的图形
-	for(i = 0; i < now_end_point; i++)
+	for(i = 0; i < *p_end_point; i++)
 	{
 		if((i % width == 0) && (i!=0))
 			if(mask == 0x80){mask = 1;}
-			else {mask <<= 1;array_index-=width;}
+			else {mask <<= 1;array_index-=width;} //由图片取模方式决定的数组扫描方式
 		if(pic[array_index]&mask)
 			OLED_WinDrawPoint(win,start_x + i%width, start_y + i/width);
 		array_index++;
@@ -464,8 +467,8 @@ uint8_t OLED_WinDrawRaderPic(window * win,const uint8_t* pic,int16_t start_x, ui
 				else OLED_WinDrawVLine(win,x,y,start_y+i/width);
 	}
 	//终点自增
-	if(now_end_point < (width*height-1)){now_end_point+=scan_rate;ret = 0;}
-	else {now_end_point = 1;ret= 1;} //图像绘制结束
+	if(*p_end_point < (width*height-1)){(*p_end_point)+=scan_rate;ret = 0;}
+	else {*p_end_point = 0;ret= 1;} //图像绘制结束
 	return ret;
 }
 

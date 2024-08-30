@@ -1,26 +1,22 @@
 #include "LittleClockUI.h"
 #include "string.h"
-#include "System.h"
-#include "BATADC.h"
+#include "../WouoUIPage/oled_ui.h"
+#include "time.h"
+
+//-------两个闹钟(结合time.h实现的闹钟)
+#define CLEAR_FLAG(flag,msk)    ((flag)&=(~msk))
+#define SET_FLAG(flag,msk)      ((flag)|=(msk))
+#define FLAG_IS_SET(flag,msk)   ((flag&msk) == msk)
+#define ALARM1_ENABLE_MSK 0x01
+#define ALARM2_ENABLE_MSK 0x02
+#define ALARM1_UPDATE_MSK 0x10
+#define ALARM2_UPDATE_MSK 0x20
+uint8_t alarm_flag = 0x00; //闹钟是否开启的标志位
+struct tm alarm1,alarm2;
+void Set_Alarm(struct tm* alarm,DigitalPage* alarm_page,uint8_t flag);
+void Check_Alarm(struct tm* alarm,DigitalPage* alarm_page,uint8_t flag);
 
 
-//定义的跨文件的全局变量
-uint16_t fps = 0; //帧率
-uint8_t update_flag = 0; 
-
-//-------枚举id，唯一标识一个页面，防止有两个页面使用同一id
-enum
-{
-    main_page_id = 0x00,
-        calendar_page_id,
-        clock_page_id,
-        alarm_list_page_id,
-            alarm1_page_id,
-            alarm2_page_id,
-        about_page_id,
-    
-    ring_page_id, //这个页面是单独游离的，只有闹钟时才会调出来
-};
 //--------定义页面对象
 TitlePage main_page;
 DigitalPage calendar_page;
@@ -134,8 +130,6 @@ Option alarm2_option_array[3]=
     [Digital_Pos_IndexLeft] = { .item_max = 23, .item_min = 0, .step = 1, .text = "Hour"},
     [Digital_Pos_IndexMid] = { .item_max = 59, .item_min = 0, .step = 1, .text = "Minute"},
     [Digital_Pos_IndexRight] = { .item_max = 59, .item_min = 0, .step = 0, .text = "Second"},
-    //DS3231只有两个闹钟，且闹钟2的秒无效，所以alarm2的step为0,为不可编辑模式
-    //(因为air001的内存不够，也不想做软件闹钟了)
 };
 String alarm12_label_array[3] = { "Close", "Open", "Delete"};
 
@@ -174,49 +168,22 @@ RaderPic qrcode_raderpic[ABOUT_PAGE_NUM] =
 };
 
 //--------定义每个页面的回调函数
-void MainPage_CallBack(uint8_t self_page_id,Option* select_item)
+void MainPage_CallBack(const Page* cur_page_addr,Option* select_item)
 {
     switch (select_item->order)
     {
-        case 0: OLED_UIJumpToPage(self_page_id,&calendar_page); break;
-        case 1: OLED_UIJumpToPage(self_page_id,&clock_page);  break;
-        case 2: OLED_UIJumpToPage(self_page_id,&alarm_list_page); break;
+        case 0: OLED_UIJumpToPage((PageAddr)cur_page_addr,&calendar_page); break;
+        case 1: OLED_UIJumpToPage((PageAddr)cur_page_addr,&clock_page);  break;
+        case 2: OLED_UIJumpToPage((PageAddr)cur_page_addr,&alarm_list_page); break;
         case 3:  //更新电量
-                select_item->val = BATADC_Read();
+                select_item->val = 50;
             break;
-        case 4: OLED_UIJumpToPage(self_page_id,&about_page); break;
+        case 4: OLED_UIJumpToPage((PageAddr)cur_page_addr,&about_page); break;
         default: break;
     }
 }
 
-void CalendarPage_CallBack(uint8_t self_page_id,Option* select_item)
-{
-    uint8_t month_days[12] = {31,28,31,30,31,30,31,31,30,31,30,31};
-    switch (select_item->order)
-    {
-        case Digital_Pos_Complete : //全部数据设置完成后，也会检测一次数据
-            SET_FLAG(update_flag,DATE_UPDATE_MSK); //同时会通知main函数设置rtc芯片
-        case Digital_Pos_IndexRight: //更正日期数据 
-            if( calendar_page.option_array[Digital_Pos_IndexRight].val >  //大于每个月的最大月数，更正日期
-                month_days[calendar_page.option_array[Digital_Pos_IndexMid].val -1])
-               OLED_DigitalPage_UpdateDigitalNumAnimation(&calendar_page,
-                 calendar_page.option_array[Digital_Pos_IndexLeft].val,
-                 calendar_page.option_array[Digital_Pos_IndexMid].val,
-                 month_days[calendar_page.option_array[Digital_Pos_IndexMid].val -1], Digital_Direct_Decrease);
-            break;
-        default:break;
-    }
-
-}
-
-void ClockPage_CallBack(uint8_t self_page_id,Option* select_item)
-{
-    if(select_item->order == Digital_Pos_Complete) //时间设置完成
-        SET_FLAG(update_flag,TIME_UPDATE_MSK); //通知主函数更新时间
-}
-
-
-void AlarmList_CallBack(uint8_t self_page_id,Option* select_item)
+void AlarmList_CallBack(const Page* cur_page_addr,Option* select_item)
 {
     switch (select_item->order)
     {
@@ -224,40 +191,38 @@ void AlarmList_CallBack(uint8_t self_page_id,Option* select_item)
             // OLED_UIJumpToPage(self_page_id, &ring_page); //只是作为绘制页面的跳转测试 
             // break;
         case 1: 
-            OLED_UIJumpToPage(self_page_id, &alarm1_page); 
-            //设置其标签
-            alarm1_page.select_label_index = (!!FLAG_IS_SET(update_flag, ALARM1_ENABLE_MSK)); //将数值变量转为逻辑
+            OLED_UIJumpToPage((PageAddr)cur_page_addr, &alarm1_page); 
             break;
         case 2: 
-            OLED_UIJumpToPage(self_page_id, &alarm2_page); 
-            alarm2_page.select_label_index = (!!FLAG_IS_SET(update_flag, ALARM2_ENABLE_MSK)); //将数值变量转为逻辑
+            OLED_UIJumpToPage((PageAddr)cur_page_addr, &alarm2_page); 
             break;
         default :break;
     }
 } 
 
-void Alarm12_CallBack(uint8_t self_page_id,Option* select_item)
+void Alarm12_CallBack(const Page* cur_page_addr,Option* select_item)
 {
     uint8_t update_msk = 0;
     uint8_t enable_msk = 0;
-    if(self_page_id == alarm1_page_id){update_msk = ALARM1_UPDATE_MSK;enable_msk = ALARM1_ENABLE_MSK;}
-    else if(self_page_id == alarm2_page_id){update_msk = ALARM2_UPDATE_MSK;enable_msk = ALARM2_ENABLE_MSK;}
+    if((DigitalPage*)cur_page_addr == &alarm1_page){update_msk = ALARM1_UPDATE_MSK;enable_msk = ALARM1_ENABLE_MSK;}
+    else if((DigitalPage*)cur_page_addr == &alarm2_page){update_msk = ALARM2_UPDATE_MSK;enable_msk = ALARM2_ENABLE_MSK;}
     switch (select_item->order)
     {
         case Digital_Pos_Complete: //编辑完成
-            SET_FLAG(update_flag, update_msk);
+            SET_FLAG(alarm_flag, update_msk);
             break;
         case Digital_Pos_IndexLabel: //click标签时
             if(strcmp(select_item->text, alarm12_label_array[0]) == 0) //close
-                CLEAR_FLAG(update_flag,enable_msk);   
+                CLEAR_FLAG(alarm_flag,enable_msk);   
             else if(strcmp(select_item->text, alarm12_label_array[1]) == 0) //open
-                SET_FLAG(update_flag,enable_msk);   
-            else if(strcmp(select_item->text, alarm12_label_array[2]) == 0) //Delete
+                SET_FLAG(alarm_flag,enable_msk);   
+            else
+            if(strcmp(select_item->text, alarm12_label_array[2]) == 0) //Delete
             {
-                CLEAR_FLAG(update_flag,enable_msk);  //闹钟标志位关闭
-                if(self_page_id == alarm1_page_id)
+                CLEAR_FLAG(alarm_flag,enable_msk);  //闹钟标志位关闭
+                if((DigitalPage*)cur_page_addr == &alarm1_page)
                     OLED_DigitalPage_UpdateDigitalNumAnimation(&alarm1_page, 0,0,0,Digital_Direct_Decrease);
-                else if(self_page_id == alarm2_page_id)
+                else if((DigitalPage*)cur_page_addr == &alarm2_page)
                     OLED_DigitalPage_UpdateDigitalNumAnimation(&alarm2_page, 0,0,0,Digital_Direct_Decrease);
             }
         default:
@@ -266,10 +231,9 @@ void Alarm12_CallBack(uint8_t self_page_id,Option* select_item)
 }
 
 
-void About_CallBack(uint8_t self_page_id,Option* select_item)
+void About_CallBack(const Page* cur_page_addr,Option* select_item)
 {
     uint8_t buff[10] = {0};
-    sprintf((char*)buff, "fps:%d",fps);
     if(select_item->order == ABOUT_PAGE_NUM) //图像绘制完成后
     {
         OLED_WinDrawStr(&w_all, 64, 7, 16, buff);
@@ -278,7 +242,7 @@ void About_CallBack(uint8_t self_page_id,Option* select_item)
     }
 }
 
-void Ring_CallBack(uint8_t self_page_id,Option* select_item)
+void Ring_CallBack(const Page* cur_page_addr,Option* select_item)
 {
     static float x = 2; 
     static float x_trg = 12;
@@ -294,12 +258,14 @@ void Ring_CallBack(uint8_t self_page_id,Option* select_item)
         if(x_trg == 12){x_trg = 2;color =! color;}
         else if(x_trg == 2){x_trg = 12;color =! color;}
     }
-    if(FLAG_IS_SET(update_flag, ALARM1_RING_MSK))
+    uint8_t ALARM1_RING_MSK = ALARM1_ENABLE_MSK<<2;
+    uint8_t ALARM2_RING_MSK = ALARM2_ENABLE_MSK<<2;
+    if(FLAG_IS_SET(alarm_flag,ALARM1_RING_MSK))
         OLED_WinDrawStr(&w_all, 60, 8, 16, "Alarm1");
-    else if((FLAG_IS_SET(update_flag, ALARM2_RING_MSK)))
+    else if(FLAG_IS_SET(alarm_flag,ALARM2_RING_MSK))
         OLED_WinDrawStr(&w_all, 60, 8, 16, "Alarm2");
-    OLED_WinDrawStr(&w_all, 60, 34, 8, "Press Any");
-    OLED_WinDrawStr(&w_all, 60, 44, 8, "Key to exit!");
+    OLED_WinDrawStr(&w_all, 60, 34, 8, (uint8_t*)"Press Any");
+    OLED_WinDrawStr(&w_all, 60, 44, 8, (uint8_t*)"Key to exit!");
 }
 
 
@@ -309,30 +275,95 @@ void Ring_CallBack(uint8_t self_page_id,Option* select_item)
 
 void LittleClockUI_Init(void)
 {
-    OLED_Init();  //硬件的初始化
-    LL_mDelay(100);
+    // OLED_Init();  //硬件的初始化
+    // LL_mDelay(100);
     OLED_ClearBuff(); //清空缓存
     OLED_RefreshBuff(); //刷新屏幕(清空屏幕)
     OLED_SetPointColor(1); //设置绘制颜色
-    OLED_UiInit();  //必要的ui参数初始化
-    OLED_TitlePageInit(&main_page, main_page_id, MAIN_PAGE_NUM, mian_option_array, main_icon_array, MainPage_CallBack);
-    OLED_DigitalPageInit(&calendar_page, calendar_page_id, calendar_option_array, CALENDAR_LABEL_NUM, week_str, '-', 0, 100, CalendarPage_CallBack);
-    OLED_DigitalPageInit(&clock_page, clock_page_id, clock_option_array, CALENDAR_LABEL_NUM, week_str, ':', 50, 100, ClockPage_CallBack); //时钟页面的标签也显示周
-    OLED_ListPageInit(&alarm_list_page, alarm_list_page_id, ALARM_LIST_PAGE_NUM, alarm_list_option_array, AlarmList_CallBack);
-    OLED_DigitalPageInit(&alarm1_page, alarm1_page_id, alarm1_option_array, ALARM12_LABEL_NUM, alarm12_label_array, ':', 50, 100, Alarm12_CallBack); 
-    OLED_DigitalPageInit(&alarm2_page, alarm2_page_id, alarm2_option_array, ALARM12_LABEL_NUM, alarm12_label_array, ':', 50, 100, Alarm12_CallBack); 
-    OLED_RaderPicPageInit(&about_page, about_page_id, ABOUT_PAGE_NUM, qrcode_raderpic, Rader_Pic_Mode_Hold, About_CallBack);
-    OLED_RaderPicPageInit(&ring_page, ring_page_id, 0, NULL, Rader_Pic_Mode_Hold, Ring_CallBack); //相当于一个空的页面可以自由绘制
-
+    OLED_TitlePageInit(&main_page, MAIN_PAGE_NUM, mian_option_array, main_icon_array, MainPage_CallBack);
+    OLED_DigitalPageInit(&calendar_page, calendar_option_array, CALENDAR_LABEL_NUM, week_str, '-', 0, 100, NULL);
+    OLED_DigitalPageInit(&clock_page, clock_option_array, CALENDAR_LABEL_NUM, week_str, ':', 50, 100, NULL); //时钟页面的标签也显示周
+    OLED_ListPageInit(&alarm_list_page, ALARM_LIST_PAGE_NUM, alarm_list_option_array, AlarmList_CallBack);
+    OLED_DigitalPageInit(&alarm1_page, alarm1_option_array, ALARM12_LABEL_NUM, alarm12_label_array, ':', 50, 100, Alarm12_CallBack); 
+    OLED_DigitalPageInit(&alarm2_page, alarm2_option_array, ALARM12_LABEL_NUM, alarm12_label_array, ':', 50, 100, Alarm12_CallBack); 
+    OLED_RaderPicPageInit(&about_page, ABOUT_PAGE_NUM, qrcode_raderpic, Rader_Pic_Mode_Hold, About_CallBack);
+    OLED_RaderPicPageInit(&ring_page, 0, NULL, Rader_Pic_Mode_Hold, Ring_CallBack); //相当于一个空的页面可以自由绘制
 }
 
 
 void LittleClockUI_Proc(void)
 {
     OLED_UIProc();
-    //由updataflag接管 alarmlist中两个选框的选中与否
-    if(FLAG_IS_SET(update_flag,ALARM1_ENABLE_MSK))alarm_list_option_array[1].val = 1;
-    else alarm_list_option_array[1].val = 0;
-    if(FLAG_IS_SET(update_flag,ALARM2_ENABLE_MSK))alarm_list_option_array[2].val = 1;
-    else alarm_list_option_array[2].val = 0;
+    if((DigitalPage*)OLED_GetCurrentPage() == &calendar_page)
+    {
+        time_t t = time(NULL);
+        struct tm *local_time = localtime(&t);
+        OLED_DigitalPage_UpdateDigitalNumAnimation(&calendar_page, 
+                local_time->tm_year-100, local_time->tm_mon + 1, local_time->tm_mday, Digital_Direct_Increase);
+    }
+    if((DigitalPage*)OLED_GetCurrentPage() == &clock_page)
+    {
+        time_t t = time(NULL);
+        struct tm *local_time = localtime(&t);
+        OLED_DigitalPage_UpdateDigitalNumAnimation(&clock_page, 
+                local_time->tm_hour, local_time->tm_min, local_time->tm_sec, Digital_Direct_Increase);
+    }
+    Set_Alarm(&alarm1,&alarm1_page,ALARM1_UPDATE_MSK);
+    Set_Alarm(&alarm2,&alarm2_page,ALARM2_UPDATE_MSK);
+    Check_Alarm(&alarm1,&alarm1_page,ALARM1_ENABLE_MSK);
+    Check_Alarm(&alarm2,&alarm2_page,ALARM2_ENABLE_MSK);
+    // printf("当前时间：%d-%02d-%02d %02d:%02d:%02d\n",
+    //     local_time->tm_year + 1900,
+    //     local_time->tm_mon + 1,
+    //     local_time->tm_mday,
+    //     local_time->tm_hour,
+    //     local_time->tm_min,
+    //     local_time->tm_sec);
+}
+void Set_Alarm(struct tm* alarm,DigitalPage* alarm_page,uint8_t msk)
+{
+    if(FLAG_IS_SET(alarm_flag,msk))
+    {
+        time_t t = time(NULL);
+        struct tm *local_time = localtime(&t);
+        *alarm = *local_time; //同步日期
+        alarm->tm_hour = alarm_page->option_array[Digital_Pos_IndexLeft].val;
+        alarm->tm_min = alarm_page->option_array[Digital_Pos_IndexMid].val;
+        alarm->tm_sec = alarm_page->option_array[Digital_Pos_IndexRight].val;
+        CLEAR_FLAG(alarm_flag,msk);
+    }
+}
+void Check_Alarm(struct tm* alarm,DigitalPage* alarm_page,uint8_t msk)
+{
+    uint8_t temp_msk = msk<<2;
+    time_t t = 0;
+    struct tm *local_time = NULL;
+    printf("0x%X\r\n",alarm_flag);
+    printf("alarm1 = %02d:%02d:%02d\r\n",alarm1.tm_hour,alarm1.tm_min,alarm1.tm_sec);
+    // printf("localtime = %02d:%02d:%02d\r\n",local_time->tm_hour,local_time->tm_min,local_time->tm_sec);
+    if(FLAG_IS_SET(alarm_flag,msk) || FLAG_IS_SET(alarm_flag,temp_msk))
+    {
+        t = time(NULL);
+        local_time = localtime(&t);
+        if(FLAG_IS_SET(alarm_flag,msk))
+            alarm_list_page.option_array[msk].val = 1;
+        else
+            alarm_list_page.option_array[msk].val = 0;
+        if(alarm->tm_hour == local_time->tm_hour && alarm->tm_min == local_time->tm_min && alarm->tm_sec == local_time->tm_sec)
+        {
+            CLEAR_FLAG(alarm_flag,msk);
+            SET_FLAG(alarm_flag,temp_msk);
+            OLED_UIChangeCurrentPage(&ring_page);
+        }
+        if(FLAG_IS_SET(alarm_flag,temp_msk))
+        {
+            if(alarm->tm_hour == local_time->tm_hour && alarm->tm_sec == local_time->tm_sec
+            && (alarm->tm_min+1 == local_time->tm_min ||(alarm->tm_min == 59 && alarm->tm_min+1 == local_time->tm_min == 0)))
+            {
+                CLEAR_FLAG(alarm_flag,temp_msk);
+                OLED_UIChangeCurrentPage((PageAddr)alarm_page);
+            }
+        } 
+
+    }
 }
