@@ -11,6 +11,8 @@
 
   所有演示的工程文件都使用zip压缩包上传在对应的文件夹下。
 
+- 由青云大佬改进过的WouoUIPage版更丝滑的模拟器版本(基于easyx搭建)于ProjectExamples文件夹下，在此特别感谢🙏🙏。[其gitee链接在此](https://gitee.com/ye-qingyun/wo-ui-emulator)。
+
 - 这是一个改动自WouoUI(1.2版本)的纯C语言，无依赖库，只适用于128*64OLED的代码框架，将WouoUI抽象出一部分统一的接口，以方便快速构建一个具有类似WouoUI风格的OLEDUI。
 
   在此十分感谢WouoUI作者开源WouoUI的源码🙏🙏，这是[WouoUI的Github链接](https://github.com/RQNG/WouoUI )和[作者的b站链接](https://space.bilibili.com/9182439)。
