@@ -10,7 +10,7 @@
 
 ### 版本声明和视频演示链接
 
-- 1.0.0版本基于EasyX在PC上仿真的演示效果(视频制作中)。
+- 1.0.0版本基于EasyX在PC上仿真的演示效果([极易部署，支持多种尺寸屏幕，支持二次开发的丝滑UI框架——WouoUIPage1.0.0演示视频_哔哩哔哩_bilibili](https://www.bilibili.com/video/BV1fANreSE8h/?vd_source=9168c6e8f345501e2daaa866a1f91d5d))。
 - Air001的TestUI(0.1.0版本)例子的[b站的演示视频](https://www.bilibili.com/video/BV19K421r76m/?share_source=copy_web&vd_source=d55bdbc2322bca2e7e5f953886166b1e)
 - Air001的LittleClock例子(0.1.0版本)的b站演示视频: https://www.bilibili.com/video/BV1J6421g7H1/
 - Stm32的TestUI例子(0.1.0版本)的b站演示视频:  https://www.bilibili.com/video/BV1mS421P7CZ/
