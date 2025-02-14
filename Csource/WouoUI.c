@@ -375,19 +375,14 @@ float WouoUI_GetOptionFloatVal(Option *option) {
     switch (option->decimalNum) {
     case DecimalNum_0:
         return option->val;
-        break;
     case DecimalNum_1:
         return option->val / 10.0f;
-        break;
     case DecimalNum_2:
         return option->val / 100.0f;
-        break;
     case DecimalNum_3:
         return option->val / 1000.0f;
-        break;
     default:
         return option->val;
-        break;
     }
 }
 
@@ -407,9 +402,12 @@ void WouoUI_SelectDefaultUI(void) {
     WouoUI_SetCurrentUI(&default_ui);
 }
 
+
 void WouoUI_AttachSendBuffFun(FunSendScreenBuff fun){
-    default_ui.pfun_sendbuff = fun;
+    p_cur_ui->pfun_sendbuff = fun;
+    WouoUI_GraphSetSendBuffFun(p_cur_ui->pfun_sendbuff);
 }
+
 
 
 /**

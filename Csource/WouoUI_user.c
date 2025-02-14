@@ -321,22 +321,22 @@ bool CommonValPage_CallBack(const Page *cur_page_addr, InputMsg msg) {
 }
 
 bool BgBlurSelPage_CallBack(const Page *cur_page_addr, InputMsg msg){
-    BLUR_DEGREE ret;
+    BLUR_DEGREE ret = BLUR_2_4;
     if(msg_click == msg){ 
         if(bg_blur_sel_page.sel_str_index < 5){ //click时选中的选项有效
             ret = (BLUR_DEGREE)bg_blur_sel_page.sel_str_index;
-        }
-        //判断是哪个选项跳转到这个弹窗来的,与list中一样,可以靠order/text进行识别都可以
-        if(!strcmp(bg_blur_sel_page.bg_opt->text,"> Msg win gb blur")){
-            g_default_ui_para.winbgblur_param[MGS_WBB] = ret;
-        } else if(!strcmp(bg_blur_sel_page.bg_opt->text,"> Conf win gb blur")){
-            g_default_ui_para.winbgblur_param[CONF_WBB] = ret;
-        } else if(!strcmp(bg_blur_sel_page.bg_opt->text,"> Val win gb blur")){
-            g_default_ui_para.winbgblur_param[VAL_WBB] = ret;
-        } else if(!strcmp(bg_blur_sel_page.bg_opt->text,"> Spin win gb blur")){
-            g_default_ui_para.winbgblur_param[SPIN_WBB] = ret;
-        } else if(!strcmp(bg_blur_sel_page.bg_opt->text,"> List win gb blur")){
-            g_default_ui_para.winbgblur_param[LIST_WBB] = ret;
+            //判断是哪个选项跳转到这个弹窗来的,与list中一样,可以靠order/text进行识别都可以
+            if(!strcmp(bg_blur_sel_page.bg_opt->text,"> Msg win gb blur")){
+                g_default_ui_para.winbgblur_param[MGS_WBB] = ret;
+            } else if(!strcmp(bg_blur_sel_page.bg_opt->text,"> Conf win gb blur")){
+                g_default_ui_para.winbgblur_param[CONF_WBB] = ret;
+            } else if(!strcmp(bg_blur_sel_page.bg_opt->text,"> Val win gb blur")){
+                g_default_ui_para.winbgblur_param[VAL_WBB] = ret;
+            } else if(!strcmp(bg_blur_sel_page.bg_opt->text,"> Spin win gb blur")){
+                g_default_ui_para.winbgblur_param[SPIN_WBB] = ret;
+            } else if(!strcmp(bg_blur_sel_page.bg_opt->text,"> List win gb blur")){
+                g_default_ui_para.winbgblur_param[LIST_WBB] = ret;
+            }
         }
     }
     return false;
@@ -346,7 +346,7 @@ bool BgBlurSelPage_CallBack(const Page *cur_page_addr, InputMsg msg){
 //--------------给主函数调用的接口函数
 void TestUI_Init(void) {
     // OLED_Init();  //硬件的初始化
-    WouoUI_SelectDefaultUI(); // 选择默认UI
+    WouoUI_SelectDefaultUI(); // 选择默认UI(这里先绑定刷屏函数再选择默认UI也没关系，因为p_cur_ui初始化时就是指向默认UI)
     WouoUI_BuffClear();      // 清空缓存
     WouoUI_BuffSend();       // 刷新屏幕(清空屏幕)
     WouoUI_GraphSetPenColor(1); // 设置绘制颜色

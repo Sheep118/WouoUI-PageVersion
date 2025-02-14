@@ -20,3 +20,4 @@ void WouoUI_Animation(AnimPos *animStr, uint16_t aniTime, uint16_t inrTime, uint
     }
     (*ret) = temp && (*ret);
 }
+

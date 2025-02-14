@@ -685,3 +685,4 @@ uint16_t WouoUI_GetStrHeightAutoNewLine(int16_t canvas_w, const char* str, sFONT
     }
     return lines * font.Height + (lines - 1) * WOUOUI_STR_LINE_SPACING;
 }
+

@@ -148,7 +148,7 @@ bool WouoUI_MsgWinPageSetContent(MsgWin *mw, char* content){
         mw->content = content;
         ret = true;
     }
-    return true;
+    return ret;
 }
 bool WouoUI_MsgWinPageSlideUpTxt(MsgWin *mw) //返回值表示能否成功滑动
 {
@@ -166,7 +166,7 @@ bool WouoUI_MsgWinPageSlideDownTxt(MsgWin * mw)
         mw->str_start_y+=mw->str_move_step;
         ret = true;
     }
-    return true;
+    return ret;
 }
 
 //-----ConfWin相关方法和函数
@@ -251,7 +251,6 @@ void WouoUI_ConfWinPageInParaInit(PageAddr page_addr)
 void WouoUI_ConfWinPageShow(PageAddr page_addr)
 {
     ConfWin * cw = (ConfWin*)page_addr;
-    Canvas temp_canvas;
     Page * bg = (Page*)(((Page*)page_addr)->last_page);
     bg->methods->show(bg); //先绘制背景
     WouoUI_GraphSetPenColor(PEN_COLOR_BLACK);
@@ -312,7 +311,7 @@ bool WouoUI_ConfWinPageReact(PageAddr page_addr)
 }
 void WouoUI_ConfWinPageIndicatorCtrl(PageAddr page_addr)
 {
-    ConfWin *cw = (ConfWin*)page_addr;
+    UNUSED_PARAMETER(page_addr);
     p_cur_ui->indicator.x.pos_tgt = p_cur_ui->cw_var.btn_ss.canvas.start_x-CONF_WIN_IND_BTN_S;
     p_cur_ui->indicator.w.pos_tgt = p_cur_ui->cw_var.btn_ss.canvas.w + 2*CONF_WIN_IND_BTN_S;
     p_cur_ui->indicator.h.pos_tgt = p_cur_ui->cw_var.btn_ss.canvas.h;
@@ -516,7 +515,6 @@ bool WouoUI_ValWinPageReact(PageAddr page_addr)
             case msg_up:
                 WouoUI_ValWinPageValIncrease(vw);
                 break;
-            break;
             case msg_right:
             case msg_down:
                 WouoUI_ValWinPageValDecrease(vw);
@@ -1016,7 +1014,7 @@ void WouoUI_ListWinPageInit(ListWin* lw, //列表弹窗对象
     lw->bg_opt = NULL;
     for(uint8_t i = 0; i < array_num; i++){
         if(NULL == str_array[i]){
-            WOUOUI_LOG_E("The %dth string of str_array in ListWin is NULL!!!");
+            WOUOUI_LOG_E("The %d th string of str_array in ListWin is NULL!!!",i);
             str_array[i] = (char*)WOUOUI_WIN_TXT_DEFAULT; //使用默认文本做提示
         }
     }

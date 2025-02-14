@@ -99,7 +99,6 @@ bool WouoUI_TitlePageIn(PageAddr page_addr)
 void WouoUI_TitlePageShow(PageAddr page_addr)
 {
     TitlePage *tp = (TitlePage *)page_addr;
-    int16_t temp = 0; // 用于存放临时的icon的x坐标
     // 计算动画参数
     WouoUI_Animation(&p_cur_ui->tp_var.iconX, p_cur_ui->upara->ani_param[TILE_ANI], p_cur_ui->time,&(p_cur_ui->anim_is_finish));   // 图标x坐标
     WouoUI_Animation(&p_cur_ui->tp_var.barX, p_cur_ui->upara->ani_param[TILE_ANI], p_cur_ui->time,&(p_cur_ui->anim_is_finish));   // 装饰条x坐标
@@ -139,7 +138,6 @@ bool WouoUI_TitlePageReact(PageAddr page_addr)
 {
     bool ret = false; //返回true时会触发UI切换状态
     TitlePage *tp = (TitlePage *)page_addr;
-    String selcet_string = NULL;
     InputMsg msg = WouoUI_MsgQueRead(&(p_cur_ui->msg_queue));
     //只要title页面有输入msg，滚动就重置(防止破坏动画)(可以只判断up/down,click和return在INparaInit中重置就可以)
     if(tp->page.auto_deal_with_msg){ //使能自动处理msg的话
@@ -189,7 +187,7 @@ void WouoUI_TitlePageInit(
         if(NULL == title_page->option_array[i].text){
             //text不能没有设置，因为在darwstr之前没有检查text文本是否为NULL，这里LOG_E提示
             title_page->option_array[i].text = (char*)WOUOUI_WIN_TXT_DEFAULT; //使用默认文本提示noset
-            WOUOUI_LOG_E("The text of %dth item in TitlePgae NO set!!!");    
+            WOUOUI_LOG_E("The text of %d th item in TitlePgae NO set!!!",i);    
         }
     }
     WouoUI_TitlePageInParaInit((PageAddr)title_page); //做一次进入参数初始化，因为默认UI中没有设置类变量的值
@@ -274,10 +272,10 @@ static void WouoUI_ListDrawText_CheckBox(int16_t start_y, Option *item, uint8_t 
     // 绘制表尾
     char val_buff[LIST_VAL_BUFF_SIZE];
     if(NULL != strchr(LIST_LINETAIL_VAL_PREFIX, item->text[0])){
-        ui_itoa_str(item->val, val_buff);
+        ui_itoa_str(item->val, val_buff); //这儿应该加上长度警告！！！
         WouoUI_ListAuotCanvasDrawLineTailValTxt(item, &canvas_txt, &canvas_val,val_buff,select_order);
     }else if(NULL != strchr(LIST_LINETAIL_SPIN_PREFIX, item->text[0])){
-        ui_ftoa_f_str(item->val, item->decimalNum, val_buff);
+        ui_ftoa_f_str(item->val, item->decimalNum, val_buff); //这儿应该加上长度警告！！！
         WouoUI_ListAuotCanvasDrawLineTailValTxt(item, &canvas_txt, &canvas_val,val_buff,select_order);
     }else if(NULL != strchr(LIST_LINETAIL_CONF_PREFIX, item->text[0])){// 如果是二值选框// 如果是二值确认弹窗
         canvas_txt.w = MIN(WouoUI_GetStrWidth(item->text,LIST_TEXT_FONT),\
@@ -289,8 +287,7 @@ static void WouoUI_ListDrawText_CheckBox(int16_t start_y, Option *item, uint8_t 
                              start_y + CHECK_BOX_U_S + CHECK_BOX_D_S+1, CHECK_BOX_D_W, CHECK_BOX_D_H, CHECK_BOX_D_R);
     }else if(NULL != strchr(LIST_LINETAIL_TXT_PREFIX, item->text[0])){// 如果是列表弹窗
         if(NULL != item->content){
-            sprintf(val_buff, "%s", item->content);
-            WouoUI_ListAuotCanvasDrawLineTailValTxt(item, &canvas_txt, &canvas_val,val_buff,select_order);
+            WouoUI_ListAuotCanvasDrawLineTailValTxt(item, &canvas_txt, &canvas_val,item->content,select_order);
         }
     }else 
         canvas_txt.w = MIN(WouoUI_GetStrWidth(item->text,LIST_TEXT_FONT), WOUOUI_BUFF_WIDTH-LIST_TEXT_R_S-LIST_TEXT_L_S*2);
@@ -460,7 +457,7 @@ void WouoUI_ListPageInit(
         if(NULL == lp->option_array[i].text){
             //text不能没有设置，因为在darwstr之前没有检查text文本是否为NULL，这里LOG_E提示
             lp->option_array[i].text = (char*)WOUOUI_WIN_TXT_DEFAULT; //使用默认文本提示noset
-            WOUOUI_LOG_E("The text of %d th item in ListPgae NO set!!!");        
+            WOUOUI_LOG_E("The text of %d th item in ListPgae NO set!!!", i);        
         }
     }
 }
@@ -786,7 +783,7 @@ bool WouoUI_WavePageReact(PageAddr page_addr)
 }
 void WouoUI_WavePageIndicatorCtrl(PageAddr page_addr)
 {
-    WavePage *wp = (WavePage*)page_addr;
+    UNUSED_PARAMETER(page_addr);
     // indicator也是波形外框
     p_cur_ui->indicator.x.pos_tgt = WAVE_BOX_L_S;
     p_cur_ui->indicator.y.pos_tgt = WAVE_BOX_U_S;
