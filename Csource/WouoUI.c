@@ -69,7 +69,7 @@ bool WouoUI_FuncDoNothingRetFalse(PageAddr page_addr){UNUSED_PARAMETER(page_addr
 // 全局UI参数集合对象(同时初始化)，这个UI的相关参数都在这个集合中定义
 UiPara g_default_ui_para = {
     .ani_param = {
-        [IND_ANI] = 120,  // 指示器动画速度
+        [IND_ANI] = 150,  // 指示器动画速度
         [TILE_ANI] = 100, // 磁贴动画速度
         [TAG_ANI] = 100,  // 标签动画速度
         [LIST_ANI] = 100, // 列表动画速度
@@ -532,7 +532,7 @@ void WouoUI_Proc(uint16_t time){
                         p_cur_ui->state = ui_page_proc; //弹窗退出时不用做in动画
                     }
                 }else { //普通全页面只需要完全渐隐即可
-                    p_all = (Page*)p_cur_ui->current_page;
+                    p_all = (Page*)p_cur_ui->in_page; //渐隐时的指示器动画换成即将要进入页面的动画
                     PAGE_USE_METHOD(p_cur_ui->current_page, show);//由于clearbuff一直清空buff，所以需要重新绘制上一个页面用于渐隐
                     if(WouoUI_BlurProc(p_cur_ui->time)){ //渐隐函数调用，返回true时，渐隐完成
                         WouoUI_BlurParaInit(0,p_cur_ui->upara->ani_param[FADE_ANI]); //渐显参数初始化
@@ -557,7 +557,7 @@ void WouoUI_Proc(uint16_t time){
                               WouoUI_BuffSend();
         }
 #else 
-          WouoUI_BuffSend();
+           WouoUI_BuffSend();
 #endif
     }
 }

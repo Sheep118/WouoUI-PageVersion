@@ -27,6 +27,7 @@ bool WouoUI_MsgWinPageIn(PageAddr page_addr)  // 进入页面的过度动画函�
     bool ret = false;
     MsgWin* mw = (MsgWin*)page_addr;
     WouoUI_GraphSetPenColor(PEN_COLOR_BLACK);
+    if(p_cur_ui->state == ui_page_in) 
     WouoUI_CanvasDrawRBox(&(p_cur_ui->w_all), p_cur_ui->indicator.x.pos_cur, p_cur_ui->indicator.y.pos_cur,
                               p_cur_ui->indicator.w.pos_cur, p_cur_ui->indicator.h.pos_cur, MSG_WIN_R); //清空出白色背景
     WouoUI_GraphSetPenColor(PEN_COLOR_WHITE);
@@ -35,7 +36,7 @@ bool WouoUI_MsgWinPageIn(PageAddr page_addr)  // 进入页面的过度动画函�
     p_cur_ui->mw_var.canvas.start_y = p_cur_ui->indicator.y.pos_cur + MSG_WIN_FONT_MARGIN;
     p_cur_ui->mw_var.canvas.h = p_cur_ui->indicator.h.pos_cur - 2*MSG_WIN_FONT_MARGIN;
     p_cur_ui->mw_var.canvas.w = p_cur_ui->indicator.w.pos_cur - 2*MSG_WIN_FONT_MARGIN;
-    if(NULL != mw->content) 
+    if(NULL != mw->content && p_cur_ui->state == ui_page_in) 
         WouoUI_CanvasDrawStrAutoNewline(&(p_cur_ui->mw_var.canvas),0,mw->str_start_y,MSG_WIN_FONT,(uint8_t*)mw->content);
     //msgwin的文字动画是随着指示器运动的，所以这里直接判断指示器是否完成与否即可
     if(p_cur_ui->indicator.x.pos_cur == p_cur_ui->indicator.x.pos_tgt && \
