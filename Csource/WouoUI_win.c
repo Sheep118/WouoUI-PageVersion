@@ -530,7 +530,6 @@ bool WouoUI_ValWinPageReact(PageAddr page_addr)
                 p_cur_ui->vw_var.win_y.pos_tgt = -1*VAL_WIN_H;
                 ret = true;
                 break;
-        
             default:break;
         }
         if (msg_none != msg && NULL != vw->page.cb)vw->page.cb(&(vw->page), msg); //任何输入的有效信息都会调用回调函数
@@ -958,7 +957,6 @@ bool WouoUI_ListWinPageReact(PageAddr page_addr)
                 p_cur_ui->lw_var.win_x.pos_tgt = WOUOUI_BUFF_WIDTH; //弹窗滑动退出动画
                 ret = true;
                 break;
-        
             default:break;
         }
         if (msg_none != msg && NULL != lw->page.cb)lw->page.cb(&(lw->page), msg); //任何输入的有效信息都会调用回调函数

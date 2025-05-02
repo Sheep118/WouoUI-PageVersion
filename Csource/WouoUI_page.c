@@ -45,7 +45,7 @@ void WouoUI_SetPageAutoDealWithMsg(Page* page, bool open)
 {
     if(WouoUI_CheckPageIsInit(page)){
         page->auto_deal_with_msg = open;
-    }else WOUOUI_LOG_E("this page is not inited!!,it can't disable/enable atip dealwth msg");
+    }else WOUOUI_LOG_E("this page is not inited!!,it can't disable/enable auto dealwth msg");
 }
 
 

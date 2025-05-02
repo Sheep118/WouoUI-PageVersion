@@ -113,7 +113,9 @@ void WouoUI_PageReturn(PageAddr page_addr);
  */
 void WouoUI_PageInit(PageAddr page_addr, CallBackFunc call_back);
 /**
- * @brief 设置页面是否自动处理消息
+ * @brief 设置页面是否自动处理消息(默认开启)
+ * @attention 需要注意，如果开启自动处理，大多数弹窗页面的click都是默认返回的(只有spinwin除外)，
+ *            如果需要click事件跳转的话，需要失能自动消息处理，并自己在回调中调用对应的处理函数
  * @param page 目标页面结构体指针
  * @param open true开启自动处理,false关闭自动处理
  */

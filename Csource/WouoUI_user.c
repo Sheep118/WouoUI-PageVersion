@@ -12,6 +12,7 @@ TitlePage main_page;
         ConfWin common_conf_page; //共用的确认弹窗
         SpinWin common_spin_page; //共用的spin弹窗
         ListWin bg_blur_sel_page; //背景模糊的选项
+            ValWin test_val_win_page; //测试的数值弹窗
     ValWin volumn_page; //音量调节页面
     ConfWin volumn_conf_page; //音量确认界面
     ListPage about_page;
@@ -322,24 +323,42 @@ bool CommonValPage_CallBack(const Page *cur_page_addr, InputMsg msg) {
 
 bool BgBlurSelPage_CallBack(const Page *cur_page_addr, InputMsg msg){
     BLUR_DEGREE ret = BLUR_2_4;
-    if(msg_click == msg){ 
-        if(bg_blur_sel_page.sel_str_index < 5){ //click时选中的选项有效
-            ret = (BLUR_DEGREE)bg_blur_sel_page.sel_str_index;
-            //判断是哪个选项跳转到这个弹窗来的,与list中一样,可以靠order/text进行识别都可以
-            if(!strcmp(bg_blur_sel_page.bg_opt->text,"> Msg win gb blur")){
-                g_default_ui_para.winbgblur_param[MGS_WBB] = ret;
-            } else if(!strcmp(bg_blur_sel_page.bg_opt->text,"> Conf win gb blur")){
-                g_default_ui_para.winbgblur_param[CONF_WBB] = ret;
-            } else if(!strcmp(bg_blur_sel_page.bg_opt->text,"> Val win gb blur")){
-                g_default_ui_para.winbgblur_param[VAL_WBB] = ret;
-            } else if(!strcmp(bg_blur_sel_page.bg_opt->text,"> Spin win gb blur")){
-                g_default_ui_para.winbgblur_param[SPIN_WBB] = ret;
-            } else if(!strcmp(bg_blur_sel_page.bg_opt->text,"> List win gb blur")){
-                g_default_ui_para.winbgblur_param[LIST_WBB] = ret;
+    bool res = false; //失能自动处理消息后，返回值true表示return，其他false
+    switch (msg)
+    {
+        case msg_click:
+            if(bg_blur_sel_page.sel_str_index < 5){ //click时选中的选项有效
+                ret = (BLUR_DEGREE)bg_blur_sel_page.sel_str_index;
+                //判断是哪个选项跳转到这个弹窗来的,与list中一样,可以靠order/text进行识别都可以
+                if(!strcmp(bg_blur_sel_page.bg_opt->text,"> Msg win gb blur")){
+                    g_default_ui_para.winbgblur_param[MGS_WBB] = ret;
+                } else if(!strcmp(bg_blur_sel_page.bg_opt->text,"> Conf win gb blur")){
+                    g_default_ui_para.winbgblur_param[CONF_WBB] = ret;
+                } else if(!strcmp(bg_blur_sel_page.bg_opt->text,"> Val win gb blur")){
+                    g_default_ui_para.winbgblur_param[VAL_WBB] = ret;
+                } else if(!strcmp(bg_blur_sel_page.bg_opt->text,"> Spin win gb blur")){
+                    g_default_ui_para.winbgblur_param[SPIN_WBB] = ret;
+                } else if(!strcmp(bg_blur_sel_page.bg_opt->text,"> List win gb blur")){
+                    g_default_ui_para.winbgblur_param[LIST_WBB] = ret;
+                }
+            } else if(bg_blur_sel_page.sel_str_index == 5){ //测试跳转嵌套弹窗
+                WouoUI_JumpToPage((PageAddr)cur_page_addr, &test_val_win_page);
             }
-        }
+            break;
+        case msg_return:
+            res = true; //失能自动处理消息后，返回值true表示return，其他false
+            break;
+        case msg_up:
+        case msg_left: //上翻一页
+            WouoUI_ListWinPageLastItem(&bg_blur_sel_page); //上翻一页
+            break;
+        case msg_down:
+        case msg_right: //下翻一页
+            WouoUI_ListWinPageNextItem(&bg_blur_sel_page); //下翻一页
+            break;
+        default: break;
     }
-    return false;
+    return res;
 }
 
 
@@ -377,7 +396,10 @@ void TestUI_Init(void) {
     WouoUI_ValWinPageInit(&common_val_page, NULL, 0, 0, 100, 20, true, true, CommonValPage_CallBack);
     WouoUI_SpinWinPageInit(&common_spin_page, NULL, 0, DecimalNum_0, -500000, 500000, true, true, NULL);
     WouoUI_ListWinPageInit(&bg_blur_sel_page, sizeof(bg_blur_sel_str_array)/sizeof(String), bg_blur_sel_str_array, true, BgBlurSelPage_CallBack);
+    WouoUI_SetPageAutoDealWithMsg((Page*)&bg_blur_sel_page, false); //失能自动处理消息，因为想要在弹窗中click跳转其他页面
 
+    WouoUI_ValWinPageInit(&test_val_win_page, (char*)"This is test for Pop-up window nesting", 0, 0, 100, 20, true, true, NULL);
+    
     WouoUI_ValWinPageInit(&volumn_page, NULL, 50, 0, 100, 1, false, false, VolumePage_CallBack);
     WouoUI_ConfWinPageInit(&volumn_conf_page, NULL, NULL, NULL, true, true, true, 2, VolumnConf_CallBack);
 }
