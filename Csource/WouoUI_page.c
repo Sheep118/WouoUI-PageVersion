@@ -169,7 +169,7 @@ bool WouoUI_TitlePageReact(PageAddr page_addr)
 }
 void WouoUI_TitlePageInit(
     TitlePage *title_page,  // 磁贴页面对象
-    uint8_t item_num,       // 选项个数，需与title数组大小，icon数组大小一致
+    uint8_t item_num,       // 选项个数，需与title数组大小，icon数组大小一致(最多255个)
     Option *option_array,   // 整个页面的选项数组(数组大小需与item_num一致)
     Icon *icon_array,       // 整个页面的icon数组(数组大小需与item_num一致)
     CallBackFunc call_back) // 回调函数，参数为确认选中项index（1-256）0表示未确认哪个选项

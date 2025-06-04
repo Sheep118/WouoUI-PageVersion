@@ -87,7 +87,7 @@ void WouoUI_BuffSendDynamic(void) {
 
 
 /*
-函数：void WouoUI_BuffWriteByte(uint8_t x, uint8_t y , uint8_t val)
+函数：void WouoUI_BuffWriteByte(uint16_t x, uint16_t y , uint8_t val)
 参数：x y 写入buff的位置，一整个字节的起始位置 coverORadd 对应的字节与\或还是直接覆盖
 注意'='是直接将输入赋值给buff，'|'是将输入为1的位在buff中置1(写白点)，'&'内部会自动取反的，及将输入的val中为1的位在buff中置0（写黑点）
 返回值：无
@@ -404,7 +404,7 @@ void WouoUI_CanvasDrawDashedLine_V(Canvas *canvas, int16_t x, int16_t y_start, i
             WouoUI_CanvasWriteByte(canvas, x, y_start + i * 8, DashedStyle);
         WouoUI_CanvasWriteByte(canvas, x, y_start + i * 8, DashedStyle & (0xFF >> (7 - m)));
     } else {
-        for (uint8_t i = 0; i <= (y_end - y_start); i++)
+        for (int16_t i = 0; i <= (y_end - y_start); i++)
             WouoUI_CanvasWriteByte(canvas, x, y_start + i, (DashedStyle >> (i % Unit_Length)) & 0x01);
     }
 }
@@ -429,7 +429,7 @@ void WouoUI_CanvasDrawLine_H(Canvas *canvas, int16_t x_start, int16_t x_end, int
         x_end = x_start;
         x_start = index;
     }
-    for (uint8_t i = 0; i <= (x_end - x_start); i++)
+    for (int16_t i = 0; i <= (x_end - x_start); i++)
         WouoUI_CanvasWriteByte(canvas, x_start + i, y, 0x01);
 }
 
@@ -453,7 +453,7 @@ void WouoUI_GraphDrawDashedLine_H(Canvas *canvas, int16_t x_start, int16_t x_end
         x_end = x_start;
         x_start = index;
     }
-    for (uint8_t i = 0; i <= (x_end - x_start); i++)
+    for (int16_t i = 0; i <= (x_end - x_start); i++)
         WouoUI_CanvasWriteByte(canvas, x_start + i, y, (DashedStyle >> (i % Unit_Length)) & 0x01);
 }
 
@@ -469,7 +469,7 @@ void WouoUI_CanvasDrawRBoxCommon(Canvas *canvas, int16_t x_start, int16_t y_star
     if (r > max_r)
         r = max_r;
     uint8_t cir_r = r;
-    for (uint8_t i = 0; i < height; i++) {
+    for (int16_t i = 0; i < height; i++) {
         if (fill || i == 0 || i == height - 1) {
             WouoUI_CanvasDrawLine_H(canvas, x_start + r, x_start + width - r - 1, y_start + i);
         } else {
@@ -535,9 +535,9 @@ void WouoUI_CanvasDrawBoxRightAngle(Canvas *canvas, int16_t x_start, int16_t y_s
 void WouoUI_CanvasDrawBMP(Canvas *canvas, int16_t x, int16_t y, int16_t width, int16_t height, const uint8_t *BMP, uint8_t color) {
     if (BMP == NULL)
         return; // 如果是NULL，直接返回
-    uint8_t n = height / 8, m = height % 8;
-    for (uint8_t i = 0; i < n; i++) {
-        for (uint8_t j = 0; j < width; j++) {
+    uint16_t n = height / 8, m = height % 8;
+    for (uint16_t i = 0; i < n; i++) {
+        for (uint16_t j = 0; j < width; j++) {
             if (x + j > canvas->w)
                 break;
             if (y + i * 8 > canvas->h)
@@ -549,7 +549,7 @@ void WouoUI_CanvasDrawBMP(Canvas *canvas, int16_t x, int16_t y, int16_t width, i
         }
     }
     if (m != 0) {
-        for (uint8_t j = 0; j < width; j++) {
+        for (int16_t j = 0; j < width; j++) {
             if (x + j > canvas->w)
                 return;
             if (color == 1)
@@ -644,7 +644,7 @@ void WouoUI_CanvasDrawLine(Canvas *canvas, int16_t x1, int16_t y1, int16_t x2, i
 }
 
 /**
- * @brief : uint8_t WouoUI_GetStrWidth(const char * str, sFONT font)
+ * @brief : uint16_t WouoUI_GetStrWidth(const char * str, sFONT font)
  * @param : 得到字符串的宽度
  * @attention : len
  */
@@ -653,7 +653,7 @@ uint16_t WouoUI_GetStrWidth(const char *str, sFONT font) {
 }
 
 /**
- * @brief : uint8_t WouoUI_GetStrHeight(const char * str, sFONT font)
+ * @brief : uint16_t WouoUI_GetStrHeight(const char * str, sFONT font)
  * @param : 得到字符串的高度
  * @attention : len
  */
