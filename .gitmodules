@@ -1,0 +1,3 @@
+[submodule "ProjectExamples/RaspberryPi4B_IIC"]
+	path = ProjectExamples/RaspberryPi4B_IIC
+	url = https://github.com/TonsenWei/pi4b_oled_page.git
