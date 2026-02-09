@@ -13,7 +13,7 @@ typedef struct _AnimPos {
     int16_t pos_err;
 } AnimPos;
 
-void WouoUI_Animation(AnimPos *animStr, uint16_t aniTime, uint16_t inrTime, uint8_t* ret);
+void WouoUI_Animation(AnimPos* animStr, uint16_t aniTime, uint16_t inrTime, uint8_t* ret);
 
 #ifdef __cplusplus
 }

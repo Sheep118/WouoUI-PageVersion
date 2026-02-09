@@ -16,7 +16,7 @@ extern "C" {
 // !"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqrstuvwxyz{|}~
 // ASCII
 typedef struct _tFont {
-    const uint8_t *table;
+    const uint8_t* table;
     uint16_t WidthHeight;
     uint16_t Width;
     uint16_t Height;
@@ -29,9 +29,8 @@ typedef struct // 汉字字模数据结构
     const char matrix[MAX_HEIGHT_FONT * MAX_WIDTH_FONT / 8]; // 点阵码数据
 } CH_CN;
 
-typedef struct
-{
-    const CH_CN *table;
+typedef struct {
+    const CH_CN* table;
     uint16_t size;
     uint16_t ASCII_Width;
     uint16_t Width;
@@ -51,7 +50,6 @@ extern cFONT Font24CN;
 
 #define GET_FNOT_H(fnot) (fnot.Height)
 #define GET_FNOT_W(fnot) (fnot.Width)
-
 
 #ifdef __cplusplus
 }
