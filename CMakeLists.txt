@@ -1,5 +1,5 @@
 # WouoUI 库的 CMakeLists.txt
-# 这个文件在 WouoUI/WouoUI-PageVersion 目录下
+# 这个文件在 WouoUI-PageVersion 目录下
 # 作用：将 Csource 下的 C 源文件编译成一个静态库，供外部项目使用
 
 # 库的名称
