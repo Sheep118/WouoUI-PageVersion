@@ -1,0 +1,33 @@
+# WouoUI 字体转换配置文件
+# Font Conversion Configuration
+
+# 字体文件夹路径 (相对于脚本所在目录)
+font_folder: ../font
+
+# 生成的C文件输出路径
+output_c_folder: ../Csource/font
+
+# 字体数组格式配置
+font_format:
+  # 排列方式: column_row = 先列后行 (列行式), row_column = 先行后列 (行列式)
+  layout: column_row
+  
+  # 比特顺序: lsb = 最低位在前 (LSB), msb = 最高位在前 (MSB)
+  bit_order: lsb
+  
+  # 编码方式: positive = 亮点为1 (阳码), negative = 亮点为0 (阴码)
+  encoding: positive
+
+# 预定义的字体大小 (不同大小的字体)
+# 可根据需要添加更多尺寸
+font_sizes:
+  default:
+    - 12
+    - 16
+    - 24
+
+# 字符集配置
+charset:
+  # ASCII 范围: 32-126 (共95个可打印字符)
+  ascii_start: 32
+  ascii_end: 126

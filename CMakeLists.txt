@@ -12,7 +12,7 @@ set(WOUOUI_SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/Csource")
 set(WOUOUI_SOURCES
     "${WOUOUI_SRC_DIR}/WouoUI.c"
     "${WOUOUI_SRC_DIR}/WouoUI_anim.c"
-    "${WOUOUI_SRC_DIR}/WouoUI_font.c"
+    "${WOUOUI_SRC_DIR}/font/WouoUI_font.c"
     "${WOUOUI_SRC_DIR}/WouoUI_graph.c"
     "${WOUOUI_SRC_DIR}/WouoUI_msg.c"
     "${WOUOUI_SRC_DIR}/WouoUI_page.c"

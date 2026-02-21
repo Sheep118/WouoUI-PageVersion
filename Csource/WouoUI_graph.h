@@ -5,9 +5,8 @@
 extern "C" {
 #endif
 
+#include "./font/WouoUI_font.h"
 #include "WouoUI_common.h"
-#include "WouoUI_font.h"
-
 
 #define WOUOUI_MIDDLE_H (WOUOUI_BUFF_WIDTH / 2)                               // 屏幕水平中间值
 #define WOUOUI_MIDDLE_V (WOUOUI_BUFF_HEIGHT / 2)                              // 屏幕垂直中间值
@@ -21,8 +20,8 @@ extern "C" {
 #define PEN_COLOR_WHITE (!PEN_COLOR_BLACK) // 写1的点显示为白色(亮)
 
 typedef struct {
-    bool color_mode : 1; // 颜色模式，正常(|//&)还是异或 normal=0;xor=1;
-    bool color : 1; // 画笔颜色(指前景色，背景色默认与前景色反色)(1白色，0黑色)
+    bool color_mode : 1;     // 颜色模式，正常(|//&)还是异或 normal=0;xor=1;
+    bool color : 1;          // 画笔颜色(指前景色，背景色默认与前景色反色)(1白色，0黑色)
     bool rev_color_flag : 1; // 是否反色绘制标志，0不反色，1反色。
 } Pen;
 
