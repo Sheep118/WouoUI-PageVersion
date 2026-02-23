@@ -5,6 +5,8 @@
 extern "C" {
 #endif
 
+#include "./font/JetBrainsMonoNerdFontMono_Light_12x24.h"
+#include "./font/JetBrainsMonoNerdFontMono_Light_8x16.h"
 #include "./font/WouoUI_font.h"
 #include "WouoUI_common.h"
 

@@ -5,7 +5,7 @@ Main Script - Font Generation Tool
 功能:
 1. 扫描字体文件夹中的所有TTF字体
 2. 让用户选择字体
-3. 让用户输入字体大小
+3. 让用户输入字体宽高
 4. 调用字体转换脚本生成C文件
 5. 生成对应的头文件
 """
@@ -30,10 +30,17 @@ class FontGeneratorTool:
         self.script_dir = os.path.dirname(os.path.abspath(__file__))
         self.config_path = os.path.join(self.script_dir, config_path)
         self.config = self.load_config()
+
+        self.scan_config = self.config.get('scan', {})
+        self.generate_config = self.config.get('generate', {})
+        self.preview_config = self.config.get('preview', {})
         
         # 根据相对路径计算实际路径
-        self.font_folder = os.path.join(self.script_dir, self.config.get('font_folder', '../font'))
-        self.output_folder = os.path.join(self.script_dir, self.config.get('output_c_folder', '../Csource/font'))
+        self.font_folder = os.path.join(self.script_dir, self.generate_config.get('font_folder', '../font'))
+        self.output_folder = os.path.join(
+            self.script_dir,
+            self.generate_config.get('output_c_folder', '../Csource/font')
+        )
         
         # 转换为绝对路径
         self.font_folder = os.path.abspath(self.font_folder)
@@ -135,26 +142,28 @@ class FontGeneratorTool:
     
     def get_font_size(self):
         """
-        获取用户输入的字体大小
+        获取用户输入的字体宽高
         
         Returns:
-            int: 字体大小 (像素) 或 None
+            tuple: (width, height) 或 None
         """
         while True:
             try:
-                size_input = input("请输入字体大小 (像素, 例如 12, 16, 24): ").strip()
+                width_input = input("请输入字体宽度 (像素, 例如 8, 12): ").strip()
+                height_input = input("请输入字体高度 (像素, 例如 16, 24): ").strip()
                 
-                if not size_input.isdigit():
-                    print("错误: 请输入数字")
+                if not width_input.isdigit() or not height_input.isdigit():
+                    print("错误: 宽高都必须是数字")
                     continue
                 
-                size = int(size_input)
+                width = int(width_input)
+                height = int(height_input)
                 
-                if size < 8 or size > 256:
-                    print("错误: 字体大小应在 8-256 像素之间")
+                if width < 4 or width > 256 or height < 4 or height > 256:
+                    print("错误: 字体宽高应在 4-256 像素之间")
                     continue
                 
-                return size
+                return width, height
             
             except KeyboardInterrupt:
                 print("\n已取消操作")
@@ -186,23 +195,24 @@ class FontGeneratorTool:
         
         return result
     
-    def generate_font(self, ttf_path, font_size):
+    def generate_font(self, ttf_path, font_width, font_height):
         """
         生成字体的C文件
         
         Args:
             ttf_path (str): TTF文件路径
-            font_size (int): 字体大小
+            font_width (int): 字体宽度
+            font_height (int): 字体高度
             
         Returns:
             bool: 是否成功
         """
         try:
             # 获取字体配置
-            font_config = self.config.get('font_format', {})
+            font_config = self.generate_config.get('font_format', {})
             
             # 创建转换器
-            converter = FontConverter(ttf_path, font_size, font_config)
+            converter = FontConverter(ttf_path, font_height, font_width, font_height, font_config)
             
             # 生成字体名称
             font_base_name = os.path.splitext(os.path.basename(ttf_path))[0]
@@ -212,7 +222,7 @@ class FontGeneratorTool:
             
             print(f"\n转换字体...")
             print(f"  字体文件: {os.path.basename(ttf_path)}")
-            print(f"  字体大小: {font_size}px")
+            print(f"  字体大小: {font_width}x{font_height}px")
             print(f"  实际尺寸: {converter.char_width}x{converter.char_height}")
             print(f"  字体名称: {font_name}")
             
@@ -232,6 +242,28 @@ class FontGeneratorTool:
         except Exception as e:
             print(f"\n✗ 错误: {e}")
             return False
+
+    def preview_font(self, ttf_path, font_width, font_height):
+        """
+        预览字体效果
+
+        Args:
+            ttf_path (str): TTF文件路径
+            font_width (int): 字体宽度
+            font_height (int): 字体高度
+        """
+        preview_text = self.preview_config.get('text', '')
+        if not preview_text:
+            return
+
+        font_config = self.generate_config.get('font_format', {})
+        converter = FontConverter(ttf_path, font_height, font_width, font_height, font_config)
+        preview_img = converter.render_preview_text(preview_text)
+
+        try:
+            preview_img.show(title="WouoUI Font Preview")
+        except Exception as e:
+            print(f"预览显示失败: {e}")
     
     def run(self):
         """
@@ -259,12 +291,16 @@ class FontGeneratorTool:
         font_name, ttf_path = result
         
         # 获取字体大小
-        font_size = self.get_font_size()
-        if font_size is None:
+        size = self.get_font_size()
+        if size is None:
             return
+        font_width, font_height = size
+
+        # 预览字体
+        self.preview_font(ttf_path, font_width, font_height)
         
         # 生成字体
-        self.generate_font(ttf_path, font_size)
+        self.generate_font(ttf_path, font_width, font_height)
         
         print("\n" + "="*60)
         print("  字体生成完成!")

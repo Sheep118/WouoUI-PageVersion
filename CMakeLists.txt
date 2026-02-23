@@ -9,10 +9,11 @@ set(WOUOUI_LIB_NAME wououi_lib)
 set(WOUOUI_SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/Csource")
 
 # 包含所有 C 源文件（显式列出比使用通配符更好）
+file(GLOB WOUOUI_FONT_SOURCES "${WOUOUI_SRC_DIR}/font/*.c")
 set(WOUOUI_SOURCES
     "${WOUOUI_SRC_DIR}/WouoUI.c"
     "${WOUOUI_SRC_DIR}/WouoUI_anim.c"
-    "${WOUOUI_SRC_DIR}/font/WouoUI_font.c"
+    ${WOUOUI_FONT_SOURCES}
     "${WOUOUI_SRC_DIR}/WouoUI_graph.c"
     "${WOUOUI_SRC_DIR}/WouoUI_msg.c"
     "${WOUOUI_SRC_DIR}/WouoUI_page.c"

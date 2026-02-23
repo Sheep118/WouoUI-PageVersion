@@ -174,58 +174,69 @@ static void WouoUI_CanvasWriteByte(Canvas* canvas, int16_t x, int16_t y, uint8_t
 */
 int16_t WouoUI_CanvasDrawASCII(Canvas* canvas, int16_t x, int16_t y, sFONT font, char c) {
     c = c - ' '; // 得到偏移值
-    switch (font.WidthHeight) {
-    case 68: // 8号字6*8
-        for (uint8_t i = 0; i < 6; i++) {
-            WouoUI_CanvasWriteByte(canvas, x, y, font.table[c * 6 + i]);
-            x++;
-            if (x > canvas->w)
-                break; // 已经超出边框没必要再写了
-        }
-        break;
+                 // switch (font.WidthHeight) {
+                 // case 68: // 8号字6*8
+                 //     for (uint8_t i = 0; i < 6; i++) {
+                 //         WouoUI_CanvasWriteByte(canvas, x, y, font.table[c * 6 + i]);
+                 //         x++;
+                 //         if (x > canvas->w)
+                 //             break; // 已经超出边框没必要再写了
+                 //     }
+                 //     break;
 
-    case 612: // 12号字6*12
-        for (uint8_t i = 0; i < 6; i++) {
-            WouoUI_CanvasWriteByte(canvas, x, y, font.table[c * 2 * 6 + i]);
-            WouoUI_CanvasWriteByte(canvas, x, y + 8, font.table[(c * 2 + 1) * 6 + i]);
-            x++;
-            if (x > canvas->w)
-                break; // 已经超出边框没必要再写了
-        }
-        break;
+    // case 612: // 12号字6*12
+    //     for (uint8_t i = 0; i < 6; i++) {
+    //         WouoUI_CanvasWriteByte(canvas, x, y, font.table[c * 2 * 6 + i]);
+    //         WouoUI_CanvasWriteByte(canvas, x, y + 8, font.table[(c * 2 + 1) * 6 + i]);
+    //         x++;
+    //         if (x > canvas->w)
+    //             break; // 已经超出边框没必要再写了
+    //     }
+    //     break;
 
-    case 712: // 12号字7*12
-        for (uint8_t i = 0; i < 7; i++) {
-            WouoUI_CanvasWriteByte(canvas, x, y, font.table[c * 2 * 7 + i]);
-            WouoUI_CanvasWriteByte(canvas, x, y + 8, font.table[(c * 2 + 1) * 7 + i]);
-            x++;
-            if (x > canvas->w)
-                break; // 已经超出边框没必要再写了
-        }
-        break;
+    // case 712: // 12号字7*12
+    //     for (uint8_t i = 0; i < 7; i++) {
+    //         WouoUI_CanvasWriteByte(canvas, x, y, font.table[c * 2 * 7 + i]);
+    //         WouoUI_CanvasWriteByte(canvas, x, y + 8, font.table[(c * 2 + 1) * 7 + i]);
+    //         x++;
+    //         if (x > canvas->w)
+    //             break; // 已经超出边框没必要再写了
+    //     }
+    //     break;
 
-    case 816: // 16号字8x16
-        for (uint8_t i = 0; i < 8; i++) {
-            WouoUI_CanvasWriteByte(canvas, x, y, font.table[c * 2 * 8 + i]);
-            WouoUI_CanvasWriteByte(canvas, x, y + 8, font.table[(c * 2 + 1) * 8 + i]);
-            x++;
-            if (x > canvas->w)
-                break; // 已经超出边框没必要再写了
-        }
-        break;
+    // case 816: // 16号字8x16
+    //     for (uint8_t i = 0; i < 8; i++) {
+    //         WouoUI_CanvasWriteByte(canvas, x, y, font.table[c * 2 * 8 + i]);
+    //         WouoUI_CanvasWriteByte(canvas, x, y + 8, font.table[(c * 2 + 1) * 8 + i]);
+    //         x++;
+    //         if (x > canvas->w)
+    //             break; // 已经超出边框没必要再写了
+    //     }
+    //     break;
 
-    case 1224: // 24号字12*24
-        for (uint8_t i = 0; i < 12; i++) {
-            WouoUI_CanvasWriteByte(canvas, x, y, font.table[c * 3 * 12 + i]);
-            WouoUI_CanvasWriteByte(canvas, x, y + 8, font.table[(c * 3 + 1) * 12 + i]);
-            WouoUI_CanvasWriteByte(canvas, x, y + 16, font.table[(c * 3 + 2) * 12 + i]);
-            x++;
-            if (x > canvas->w)
-                break; // 已经超出边框没必要再写了
+    // case 1224: // 24号字12*24
+    //     for (uint8_t i = 0; i < 12; i++) {
+    //         WouoUI_CanvasWriteByte(canvas, x, y, font.table[c * 3 * 12 + i]);
+    //         WouoUI_CanvasWriteByte(canvas, x, y + 8, font.table[(c * 3 + 1) * 12 + i]);
+    //         WouoUI_CanvasWriteByte(canvas, x, y + 16, font.table[(c * 3 + 2) * 12 + i]);
+    //         x++;
+    //         if (x > canvas->w)
+    //             break; // 已经超出边框没必要再写了
+    //     }
+    //     break;
+    // default:
+    //     break;
+    // }
+    // (font.Height + 7) / 8 ==> cell(font.Height/8)
+    for (uint8_t i = 0; i < font.Width; i++) {
+        for (uint8_t j = 0; j < (font.Height + 7) / 8; j++) {
+            WouoUI_CanvasWriteByte(
+                canvas, x, y + j * 8,
+                font.table[c * font.Width * ((font.Height + 7) / 8) + i + j * font.Width]);
         }
-        break;
-    default:
-        break;
+        x++;
+        if (x > canvas->w)
+            break; // 已经超出边框没必要再写了
     }
     return x;
 }
