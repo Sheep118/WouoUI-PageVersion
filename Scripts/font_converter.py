@@ -32,6 +32,7 @@ class FontConverter:
                 - layout: 'column_row' 或 'row_column'
                 - bit_order: 'lsb' 或 'msb'
                 - encoding: 'positive' 或 'negative'
+                - scaling: 包含 downscale 和 upscale 的缩放配置
         """
         self.ttf_path = ttf_path
         self.font_size = font_size
@@ -42,7 +43,17 @@ class FontConverter:
         self.config = {
             'layout': 'row_column',
             'bit_order': 'lsb',
-            'encoding': 'positive'
+            'encoding': 'positive',
+            'scaling': {
+                'downscale': {
+                    'algorithm': 'LANCZOS',
+                    'threshold': 120
+                },
+                'upscale': {
+                    'algorithm': 'NEAREST',
+                    'threshold': 80
+                }
+            }
         }
         if config:
             self.config.update(config)
@@ -106,11 +117,43 @@ class FontConverter:
 
         # 按目标尺寸缩放（避免保持宽高比）
         if self.char_width != base_width or self.char_height != base_height:
-            glyph_img = glyph_img.resize((self.char_width, self.char_height), Image.NEAREST)
+            # 判断是放大还是缩小
+            is_downscaling = (self.char_width < base_width or self.char_height < base_height)
+            
+            if is_downscaling:
+                # 缩小：读取config中的缩放算法
+                scale_config = self.config['scaling']['downscale']
+                algorithm_name = scale_config.get('algorithm', 'LANCZOS')
+                threshold = scale_config.get('threshold', 120)
+                
+                # 获取PIL的算法常数
+                algorithm = getattr(Image, algorithm_name, Image.LANCZOS)
+                glyph_img = glyph_img.resize((self.char_width, self.char_height), algorithm)
+            else:
+                # 放大：读取config中的缩放算法
+                scale_config = self.config['scaling']['upscale']
+                algorithm_name = scale_config.get('algorithm', 'NEAREST')
+                threshold = scale_config.get('threshold', 80)
+                
+                # 获取PIL的算法常数
+                algorithm = getattr(Image, algorithm_name, Image.NEAREST)
+                glyph_img = glyph_img.resize((self.char_width, self.char_height), algorithm)
 
-        # 转换为二值像素
-        pixels = (np.array(glyph_img) > 0).astype(np.uint8)
+        # 转换为二值像素（使用对应缩放方式的阈值）
+        # 判断当前是缩小还是放大，以获取正确的阈值
+        is_downscaling = (self.char_width < base_width or self.char_height < base_height)
+        scale_config = self.config['scaling']['downscale' if is_downscaling else 'upscale']
+        threshold = scale_config.get('threshold', 120 if is_downscaling else 80)
+        
+        pixels = (np.array(glyph_img) > threshold).astype(np.uint8)
         return pixels
+
+    def print_pixels_preview(self, pixels, label=None):
+        """Print a pixels matrix using # and space."""
+        if label:
+            print(label)
+        for row in pixels:
+            print("".join("#" if v else " " for v in row))
 
     def render_preview_text(self, text, spacing=1, line_spacing=1):
         """
@@ -144,6 +187,12 @@ class FontConverter:
                 pixels = self.render_character(ch)
                 packed = self.pixels_to_bytes(pixels)
                 roundtrip = self.bytes_to_pixels(packed, self.char_width, self.char_height)
+                
+                # 根据配置决定是否打印矩阵
+                preview_print_output = self.config.get('preview', {}).get('print_output', False)
+                if preview_print_output:
+                    self.print_pixels_preview(roundtrip, label=f"\n[{ch}] bitmap:")
+                
                 glyph = Image.fromarray((roundtrip * 255).astype(np.uint8), mode='L')
                 line_img.paste(glyph, (x, 0))
                 x += self.char_width + spacing
@@ -494,6 +543,7 @@ const sFONT {font_struct_name} = {{
 def main():
     """主函数 - 用于测试"""
     import sys
+    import yaml
     
     if len(sys.argv) < 4:
         print("用法: python font_converter.py <ttf_path> <font_width> <font_height> [output_dir] [preview_text]")
@@ -504,19 +554,53 @@ def main():
     target_width = int(sys.argv[2])
     target_height = int(sys.argv[3])
     output_dir = sys.argv[4] if len(sys.argv) > 4 else os.path.dirname(__file__)
-    preview_text = sys.argv[5] if len(sys.argv) > 5 else "Hello WouoUI ghb123!@"
+    preview_text = sys.argv[5] if len(sys.argv) > 5 else None
     
-    # 默认配置
-    config = {
-        'layout': 'row_column',
-        'bit_order': 'lsb',
-        'encoding': 'positive'
-    }
+    # 从 config.yaml 加载配置
+    config_file = os.path.join(os.path.dirname(__file__), 'config.yaml')
+    try:
+        with open(config_file, 'r', encoding='utf-8') as f:
+            yaml_config = yaml.safe_load(f)
+        
+        # 提取字体相关配置
+        generate_config = yaml_config.get('generate', {})
+        font_format_config = generate_config.get('font_format', {})
+        scaling_config = generate_config.get('scaling', {})
+        preview_config = yaml_config.get('preview', {})
+        
+        # 合并配置
+        config = {
+            'layout': font_format_config.get('layout', 'row_column'),
+            'bit_order': font_format_config.get('bit_order', 'lsb'),
+            'encoding': font_format_config.get('encoding', 'positive'),
+            'scaling': scaling_config,
+            'preview': preview_config
+        }
+        
+        # 如果命令行没有提供预览文本，使用配置文件中的文本
+        if preview_text is None:
+            preview_text = preview_config.get('text', 'Hello WouoUI ghb123!@')
+    except Exception as e:
+        print(f"警告: 无法加载 config.yaml ({e})，使用默认配置")
+        config = {
+            'layout': 'row_column',
+            'bit_order': 'lsb',
+            'encoding': 'positive',
+            'scaling': {
+                'downscale': {'algorithm': 'LANCZOS', 'threshold': 120},
+                'upscale': {'algorithm': 'NEAREST', 'threshold': 80}
+            },
+            'preview': {'enabled': True, 'print_output': True, 'text': 'Hello WouoUI ghb123!@'}
+        }
+        if preview_text is None:
+            preview_text = 'Hello WouoUI ghb123!@'
     
     converter = FontConverter(ttf_path, target_height, target_width, target_height, config)
     font_name = os.path.splitext(os.path.basename(ttf_path))[0] + f"_{target_width}x{target_height}"
 
-    if preview_text:
+    # 根据配置决定是否进行预览
+    preview_enabled = config.get('preview', {}).get('enabled', True)
+    if preview_enabled and preview_text:
         try:
             preview_img = converter.render_preview_text(preview_text)
             preview_img.show(title="WouoUI Font Preview")
@@ -529,6 +613,22 @@ def main():
     print(f"  Header: {header_path}")
     print(f"  Source: {source_path}")
     print(f"  字体大小: {converter.char_width}x{converter.char_height}")
+    
+    # 输出使用的缩放配置
+    is_downscaling = (converter.char_width < 10)  # 简单判断
+    scale_cfg = config['scaling'].get('downscale' if is_downscaling else 'upscale', {})
+    print(f"  缩放模式: {'下采样 (downscale)' if is_downscaling else '上采样 (upscale)'}")
+    print(f"  插值算法: {scale_cfg.get('algorithm', 'N/A')}")
+    print(f"  二值化阈值: {scale_cfg.get('threshold', 'N/A')}")
+    
+    # 输出功能配置状态
+    preview_config = config.get('preview', {})
+    preview_enabled = preview_config.get('enabled', False)
+    preview_print_output = preview_config.get('print_output', False)
+    print(f"\n功能配置:")
+    print(f"  预览显示: {'已启用' if preview_enabled else '已禁用'}")
+    if preview_enabled:
+        print(f"  预览打印输出: {'已启用' if preview_print_output else '已禁用'}")
 
 
 if __name__ == "__main__":
