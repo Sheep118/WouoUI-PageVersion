@@ -68,10 +68,10 @@ generate:
 # 预览配置
 preview:
   # 是否开启预览功能
-  enabled: false
+  enabled: true
   
   # 是否输出矩阵数组到控制台（使用 # 和空格表示）
   print_output: true
   
   # 预览展示的字符串
-  text: "Hello WouoUI gh123" 
+  text: "Hello WouoUI ghH123" 

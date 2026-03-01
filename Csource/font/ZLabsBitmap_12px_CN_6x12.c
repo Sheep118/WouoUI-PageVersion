@@ -1,7 +1,7 @@
 /**
  * Auto-generated font file from ZLabsBitmap_12px_CN.ttf
  * Font Size: 12px
- * Generated: 2026-02-25 22:06:08
+ * Generated: 2026-03-01 18:32:54
  * 
  * Layout: row_column
  * Bit Order: lsb
