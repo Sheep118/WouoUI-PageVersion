@@ -9,6 +9,7 @@ extern "C" {
 #include "./font/VonwaonBitmap_12px_8x12.h"
 #include "./font/VonwaonBitmap_16px_12x24.h"
 #include "./font/WouoUI_font.h"
+#include "./font/ZLabsBitmap_12px_CN.h"
 #include "./font/ZLabsBitmap_12px_CN_12x24.h"
 #include "./font/ZLabsBitmap_12px_CN_6x12.h"
 #include "WouoUI_common.h"

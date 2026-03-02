@@ -25,8 +25,8 @@ generate:
     # 编码方式: positive = 亮点为1 (阳码), negative = 亮点为0 (阴码)
     encoding: positive
 
-  # 预定义的字体大小 (不同大小的字体)
-  # 可根据需要添加更多尺寸
+  # 预定义的字体大小 (字体高度，宽度根据字符集自动计算)
+  # 这些尺寸会为每个字体生成，并放在同一个.c和.h文件中
   font_sizes:
     default:
       - 12
@@ -39,32 +39,6 @@ generate:
     ascii_start: 32
     ascii_end: 126
 
-  # 图像缩放和二值化配置
-  scaling:
-    # 下采样 (缩小) 配置
-    downscale:
-      # 插值算法: NEAREST, BILINEAR, BICUBIC, LANCZOS
-      # LANCZOS: 最高质量，保留细节（推荐缩小时使用）
-      # BICUBIC: 中等质量，速度较快
-      # BILINEAR: 快速，质量一般
-      # NEAREST: 最快，但会丢失细节
-      algorithm: LANCZOS
-      
-      # 二值化阈值 (0-255)
-      # LANCZOS/BICUBIC 会产生灰度值，使用阈值转换为黑白
-      # 推荐值: 100-130
-      threshold: 120
-    
-    # 上采样 (放大) 配置
-    upscale:
-      # 插值算法: NEAREST 保持锐利边缘（推荐放大时使用）
-      algorithm: NEAREST
-      
-      # 二值化阈值 (0-255)
-      # NEAREST 产生的仍是黑白，但为了一致性也保留阈值配置
-      # 推荐值: 80
-      threshold: 0
-
 # 预览配置
 preview:
   # 是否开启预览功能
@@ -74,4 +48,5 @@ preview:
   print_output: true
   
   # 预览展示的字符串
-  text: "Hello WouoUI ghH123" 
+  text: "WQghH123我"
+

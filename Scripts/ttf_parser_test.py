@@ -2,12 +2,12 @@ import freetype
 
 # 加载字体
 # face = freetype.Face("../font/Pixeloid_Font_1_0/TrueType (.ttf)/PixeloidMono.ttf")
-face = freetype.Face("../font/04b_03/04B_03__.TTF")
+# face = freetype.Face("../font/04b_03/04B_03__.TTF")
 # face = freetype.Face("../font/unifont/unifont-16_0_04.ttf")
-# face = freetype.Face("../font/ZlabsBitmap_12px_ttf/ZlabsBitmap_12px_CN.ttf")
+face = freetype.Face("../font/ZlabsBitmap_12px_ttf/ZlabsBitmap_12px_CN.ttf")
 
 # 设置字符大小（比如 16 像素）
-face.set_pixel_sizes(0, 8)
+face.set_pixel_sizes(0, 16)
 
 # 打印字体的全局度量信息
 print(f"字体度量信息:")
