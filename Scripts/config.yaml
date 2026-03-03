@@ -24,6 +24,15 @@ generate:
     
     # 编码方式: positive = 亮点为1 (阳码), negative = 亮点为0 (阴码)
     encoding: positive
+    
+    # 字符间距配置
+    char_spacing:
+      # 左侧padding（像素数）
+      left_pad: 1
+      # 右侧padding（像素数）
+      right_pad: 1
+      # 是否居中对齐窄字符 (true = 居中, false = 左对齐)
+      center_align: true
 
   # 预定义的字体大小 (字体高度，宽度根据字符集自动计算)
   # 这些尺寸会为每个字体生成，并放在同一个.c和.h文件中

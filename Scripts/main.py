@@ -76,11 +76,13 @@ class FontGenerator:
         layout = font_format_config.get('layout', 'row_column')
         bit_order = font_format_config.get('bit_order', 'lsb')
         encoding = font_format_config.get('encoding', 'positive')
+        char_spacing = font_format_config.get('char_spacing', {})
         
         config = {
             'layout': layout,
             'bit_order': bit_order,
-            'encoding': encoding
+            'encoding': encoding,
+            'char_spacing': char_spacing
         }
         
         # 获取字体期望大小

@@ -136,7 +136,7 @@ class CFileGenerator:
     
     def _get_unified_width(self, char_data):
         """
-        获取统一的字符宽度（所有字符的最大宽度）
+        获取统一的字符宽度（所有字符的最大宽度 + padding）
         
         Args:
             char_data (list): 字符数据列表
@@ -146,7 +146,19 @@ class CFileGenerator:
         """
         if not char_data:
             return 0
-        return max([item['width'] for item in char_data])
+        
+        # 获取最大字符宽度
+        max_width = max([item['width'] for item in char_data])
+        
+        # 获取padding配置
+        spacing_config = self.config.get('char_spacing', {})
+        left_pad = spacing_config.get('left_pad', 0)
+        right_pad = spacing_config.get('right_pad', 0)
+        
+        # 统一宽度 = 最大宽度 + 左padding + 右padding
+        unified_width = max_width + left_pad + right_pad
+        
+        return unified_width
     
     def _get_unified_height(self, char_data):
         """
@@ -165,6 +177,7 @@ class CFileGenerator:
     def _rebuild_bytes_with_unified_width(self, char_item, unified_width, unified_height, baseline_offset=0):
         """
         使用统一的宽度和高度重新生成字节数据（按基线对齐）
+        支持字符居中对齐和padding
         
         Args:
             char_item (dict): 字符项
@@ -180,6 +193,12 @@ class CFileGenerator:
         original_width = char_item['width']
         original_height = char_item['height']
         
+        # 获取padding和对齐配置
+        spacing_config = self.config.get('char_spacing', {})
+        left_pad = spacing_config.get('left_pad', 0)
+        right_pad = spacing_config.get('right_pad', 0)
+        center_align = spacing_config.get('center_align', True)
+        
         # 如果有pixels，从pixels重新生成字节（最可靠的方法）
         if 'pixels' in char_item and char_item['pixels'] is not None:
             pixels = char_item['pixels']
@@ -187,12 +206,25 @@ class CFileGenerator:
             # 创建统一大小的新像素矩阵
             new_pixels = np.zeros((unified_height, unified_width), dtype=np.uint8)
             
-            # 将原始像素复制到基线对齐的位置
-            copy_height = min(pixels.shape[0], unified_height - baseline_offset)
-            copy_width = min(pixels.shape[1], unified_width)
+            # 计算字符的水平位置（左侧偏移）
+            # 首先考虑左padding
+            available_width = unified_width - left_pad - right_pad
             
-            if copy_height > 0:
-                new_pixels[baseline_offset:baseline_offset + copy_height, :copy_width] = pixels[:copy_height, :copy_width]
+            if center_align and original_width < available_width:
+                # 居中对齐：计算需要补充的空白
+                total_padding = available_width - original_width
+                left_offset = left_pad + total_padding // 2
+            else:
+                # 左对齐：直接加上left_pad
+                left_offset = left_pad
+            
+            # 将原始像素复制到对齐的位置
+            copy_height = min(pixels.shape[0], unified_height - baseline_offset)
+            copy_width = min(pixels.shape[1], unified_width - left_offset)
+            
+            if copy_height > 0 and copy_width > 0:
+                new_pixels[baseline_offset:baseline_offset + copy_height, 
+                          left_offset:left_offset + copy_width] = pixels[:copy_height, :copy_width]
             
             # 重新生成字节
             return self._pixels_to_bytes(new_pixels, unified_width, unified_height)
@@ -206,6 +238,7 @@ class CFileGenerator:
         
         # 遍历统一高度的每一行
         for row_idx in range(unified_height):
+
             if row_idx < original_height:
                 # 原始字符有这一行，复制并补齐
                 row_start = row_idx * bytes_per_row_original
@@ -477,13 +510,32 @@ class CFileGenerator:
             size = size_info['size']
             char_data = size_info['data']
             if char_data:
+                # 获取实际字体宽度和padding信息
+                actual_width = max([item['width'] for item in char_data])
+                spacing_config = self.config.get('char_spacing', {})
+                left_pad = spacing_config.get('left_pad', 0)
+                right_pad = spacing_config.get('right_pad', 0)
+                
                 unified_width = self._get_unified_width(char_data)
                 unified_height = self._get_unified_height(char_data)
-                summary += f"  {size}px: {unified_width}x{unified_height}, {len(char_data)} characters\n"
+                
+                # 显示详细信息
+                if left_pad > 0 or right_pad > 0:
+                    summary += f"  {size}px: {unified_width}x{unified_height} (actual {actual_width}+{left_pad+right_pad} padding), {len(char_data)} characters\n"
+                else:
+                    summary += f"  {size}px: {unified_width}x{unified_height}, {len(char_data)} characters\n"
         
         summary += f"Config:\n"
         summary += f"  Layout: {self.config['layout']}\n"
         summary += f"  Bit Order: {self.config['bit_order']}\n"
         summary += f"  Encoding: {self.config['encoding']}\n"
+        
+        # 显示字符间距配置
+        spacing_config = self.config.get('char_spacing', {})
+        if spacing_config:
+            summary += f"  Char Spacing:\n"
+            summary += f"    Left Padding: {spacing_config.get('left_pad', 0)}px\n"
+            summary += f"    Right Padding: {spacing_config.get('right_pad', 0)}px\n"
+            summary += f"    Center Align: {spacing_config.get('center_align', True)}\n"
         
         return summary
