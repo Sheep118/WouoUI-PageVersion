@@ -16,6 +16,8 @@ set(WOUOUI_SOURCES
     # ${WOUOUI_FONT_SOURCES}
     "${WOUOUI_SRC_DIR}/font/_04B_03__.c"
     "${WOUOUI_SRC_DIR}/font/ZLabsBitmap_12px_CN.c"
+    "${WOUOUI_SRC_DIR}/font/TerminessNerdFontMono_Bold.c"
+    "${WOUOUI_SRC_DIR}/font/unifont_16_0_04.c"
     "${WOUOUI_SRC_DIR}/font/WouoUI_font.c"
     "${WOUOUI_SRC_DIR}/WouoUI_graph.c"
     "${WOUOUI_SRC_DIR}/WouoUI_msg.c"

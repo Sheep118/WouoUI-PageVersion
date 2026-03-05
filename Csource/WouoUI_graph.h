@@ -4,17 +4,12 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "./font/TerminessNerdFontMono_Bold_12x24.h"
-#include "./font/TerminessNerdFontMono_Bold_8x14.h"
-#include "./font/VonwaonBitmap_12px_8x12.h"
-#include "./font/VonwaonBitmap_16px_12x24.h"
+#include "./font/TerminessNerdFontMono_Bold.h"
 #include "./font/WouoUI_font.h"
 #include "./font/ZLabsBitmap_12px_CN.h"
-#include "./font/ZLabsBitmap_12px_CN_12x24.h"
-#include "./font/ZLabsBitmap_12px_CN_6x12.h"
 #include "./font/_04B_03__.h"
+#include "./font/unifont_16_0_04.h"
 #include "WouoUI_common.h"
-
 
 #define WOUOUI_MIDDLE_H (WOUOUI_BUFF_WIDTH / 2)                               // 屏幕水平中间值
 #define WOUOUI_MIDDLE_V (WOUOUI_BUFF_HEIGHT / 2)                              // 屏幕垂直中间值
