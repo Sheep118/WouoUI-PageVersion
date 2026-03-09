@@ -114,6 +114,8 @@ class FontGenerator:
             else:
                 print(f"[-] 无法识别的字体类型: {full_font_path}")
                 return False, None
+
+        font_type_lower = font_type.lower()
         
         # 获取字体名称
         font_basename = os.path.splitext(os.path.basename(full_font_path))[0]
@@ -131,6 +133,8 @@ class FontGenerator:
         if font_sizes is None:
             # 向后兼容：如果是旧的方式调用（没传sizes），试图从profiles中找
             font_sizes = [12]  # 默认尺寸
+
+        successful_sizes = 0
         
         # 处理每个字体尺寸
         for font_size in font_sizes:
@@ -138,9 +142,9 @@ class FontGenerator:
             
             try:
                 # 创建parser
-                if font_type.lower() == 'ttf':
+                if font_type_lower == 'ttf':
                     parser = TTFParser(full_font_path, font_size, config)
-                elif font_type.lower() == 'bdf':
+                elif font_type_lower == 'bdf':
                     parser = BDFParser(full_font_path, font_size, config)
                 else:
                     print(f"[-] 不支持的字体类型: {font_type}")
@@ -151,6 +155,11 @@ class FontGenerator:
                 # 渲染ASCII字符集
                 char_data = parser.render_ascii(start_char, end_char)
                 print(f"  [+] 渲染 {len(char_data)} 个字符")
+
+                # BDF是固定大小字体，遇到无法渲染当前尺寸时仅提示并跳过
+                if font_type_lower == 'bdf' and not char_data:
+                    print(f"  [!] BDF字体为固定大小，尺寸 {font_size}px 无可用字形，已跳过该尺寸")
+                    continue
                 
                 if char_data:
                     # 显示第一个字符的信息
@@ -159,6 +168,7 @@ class FontGenerator:
                 
                 # 添加到生成器
                 generator.add_font_size(font_size, char_data, start_char, end_char)
+                successful_sizes += 1
                 
                 # 是否显示预览
                 if preview_config.get('enabled', True) and preview_config.get('print_output', True):
@@ -170,10 +180,19 @@ class FontGenerator:
                             print(f"    '{item['char']}': {item['width']}x{item['height']}")
                 
             except Exception as e:
+                if font_type_lower == 'bdf':
+                    print(f"  [!] BDF字体为固定大小，无法按 {font_size}px 解析: {e}")
+                    print(f"  [!] 已跳过该尺寸，继续处理后续尺寸")
+                    continue
+
                 print(f"  [-] 处理失败: {e}")
                 import traceback
                 traceback.print_exc()
                 return False, None
+
+        if successful_sizes == 0:
+            print(f"[-] 字体 {font_basename} 没有成功生成任何尺寸，已跳过")
+            return False, None
         
         # 生成C文件
         print(f"\n生成C文件...")

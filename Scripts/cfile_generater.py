@@ -85,13 +85,13 @@ class CFileGenerator:
         
         return result
     
-    def _get_struct_name(self, size):
-        """获取指定尺寸的结构体名称"""
-        return f"{self.font_name}_{size}_t"
+    def _get_struct_name(self, width, height):
+        """获取指定实际宽高的结构体名称"""
+        return f"{self.font_name}_{width}x{height}_t"
     
-    def _get_array_name(self, size):
-        """获取指定尺寸的数组名称"""
-        return f"{self.font_name}_{size}"
+    def _get_array_name(self, width, height):
+        """获取指定实际宽高的数组名称"""
+        return f"{self.font_name}_{width}x{height}"
     
     def generate_header(self):
         """
@@ -100,7 +100,7 @@ class CFileGenerator:
         Returns:
             str: 头文件内容
         """
-        guard_name = f"__{self.font_name.upper()}_H"
+        guard_name = f"__FONT_{self.font_name.upper()}_H"
         
         header = f"""/**
  * Auto-generated font header file
@@ -124,8 +124,18 @@ class CFileGenerator:
         # 为每个尺寸添加外部声明
         for size_info in self.font_sizes:
             size = size_info['size']
-            array_name = self._get_array_name(size)
-            struct_name = self._get_struct_name(size)
+            char_data = size_info['data']
+
+            if char_data:
+                unified_width = self._get_unified_width(char_data)
+                baseline_metrics = self._get_baseline_metrics(char_data)
+                unified_height = baseline_metrics['total_height']
+            else:
+                unified_width = 0
+                unified_height = 0
+
+            array_name = self._get_array_name(unified_width, unified_height)
+            struct_name = self._get_struct_name(unified_width, unified_height)
             
             header += f"/* Font data for {size}px */\n"
             header += f"extern const uint8_t {array_name}[];\n"
@@ -365,7 +375,7 @@ class CFileGenerator:
  * Encoding: {self.config['encoding']}
  */
 
-#include "{self._sanitize_name(self.font_name)}.h"
+#include "Font_{self.font_name}.h"
 
 """
         
@@ -375,9 +385,6 @@ class CFileGenerator:
             char_data = size_info['data']
             start_char = size_info['start_char']
             end_char = size_info['end_char']
-            array_name = self._get_array_name(size)
-            struct_name = self._get_struct_name(size)
-            
             # 计算统一的字符宽度和高度
             if char_data:
                 unified_width = self._get_unified_width(char_data)
@@ -389,6 +396,9 @@ class CFileGenerator:
                 unified_width = 0
                 unified_height = 0
                 baseline_offsets = {}
+
+            array_name = self._get_array_name(unified_width, unified_height)
+            struct_name = self._get_struct_name(unified_width, unified_height)
             
             # 生成字节数据
             source += f"/* Font data for {size}px - {unified_width}x{unified_height} per character (baseline aligned) */\n"
@@ -482,7 +492,7 @@ class CFileGenerator:
         if not os.path.exists(output_dir):
             os.makedirs(output_dir)
         
-        base_name = self.font_name
+        base_name = f"Font_{self.font_name}"
         header_path = os.path.join(output_dir, f"{base_name}.h")
         source_path = os.path.join(output_dir, f"{base_name}.c")
         
