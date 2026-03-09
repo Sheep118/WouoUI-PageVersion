@@ -42,7 +42,7 @@ generate:
     chinese_fonts:               # 中文字体
       font_paths:
         - ../font/ZLabsBitmap_12px_ttf/ZLabsBitmap_12px_CN.ttf
-      sizes: [12, 24]
+      sizes: [12, 16, 24]
     
     monospace_fonts:             # 等宽字体
       font_paths:
@@ -52,7 +52,12 @@ generate:
     unicode_fonts:               # Unicode字体 
       font_paths:
         - ../font/unifont/unifont-16_0_04.ttf
-      sizes: [12,16]
+      sizes: [12, 16]
+
+    Small_fonts:                 # 小尺寸字体
+      font_paths:
+        - ../font/04b_03/04B_03__.TTF
+      sizes: [6, 8, 12]
 
   # 字符集配置
   charset:

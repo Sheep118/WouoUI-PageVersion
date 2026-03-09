@@ -4,11 +4,11 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "./font/TerminessNerdFontMono_Bold.h"
+#include "./font/Font_TerminessNerdFont_BoldItalic.h"
+#include "./font/Font_ZLabsBitmap_12px_CN.h"
+#include "./font/Font__04B_03__.h"
+#include "./font/Font_unifont_16_0_04.h"
 #include "./font/WouoUI_font.h"
-#include "./font/ZLabsBitmap_12px_CN.h"
-#include "./font/_04B_03__.h"
-#include "./font/unifont_16_0_04.h"
 #include "WouoUI_common.h"
 
 #define WOUOUI_MIDDLE_H (WOUOUI_BUFF_WIDTH / 2)                               // 屏幕水平中间值
