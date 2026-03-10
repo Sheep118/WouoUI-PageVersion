@@ -174,60 +174,6 @@ static void WouoUI_CanvasWriteByte(Canvas* canvas, int16_t x, int16_t y, uint8_t
 */
 int16_t WouoUI_CanvasDrawASCII(Canvas* canvas, int16_t x, int16_t y, sFONT font, char c) {
     c = c - ' '; // 得到偏移值
-                 // switch (font.WidthHeight) {
-                 // case 68: // 8号字6*8
-                 //     for (uint8_t i = 0; i < 6; i++) {
-                 //         WouoUI_CanvasWriteByte(canvas, x, y, font.table[c * 6 + i]);
-                 //         x++;
-                 //         if (x > canvas->w)
-                 //             break; // 已经超出边框没必要再写了
-                 //     }
-                 //     break;
-
-    // case 612: // 12号字6*12
-    //     for (uint8_t i = 0; i < 6; i++) {
-    //         WouoUI_CanvasWriteByte(canvas, x, y, font.table[c * 2 * 6 + i]);
-    //         WouoUI_CanvasWriteByte(canvas, x, y + 8, font.table[(c * 2 + 1) * 6 + i]);
-    //         x++;
-    //         if (x > canvas->w)
-    //             break; // 已经超出边框没必要再写了
-    //     }
-    //     break;
-
-    // case 712: // 12号字7*12
-    //     for (uint8_t i = 0; i < 7; i++) {
-    //         WouoUI_CanvasWriteByte(canvas, x, y, font.table[c * 2 * 7 + i]);
-    //         WouoUI_CanvasWriteByte(canvas, x, y + 8, font.table[(c * 2 + 1) * 7 + i]);
-    //         x++;
-    //         if (x > canvas->w)
-    //             break; // 已经超出边框没必要再写了
-    //     }
-    //     break;
-
-    // case 816: // 16号字8x16
-    //     for (uint8_t i = 0; i < 8; i++) {
-    //         WouoUI_CanvasWriteByte(canvas, x, y, font.table[c * 2 * 8 + i]);
-    //         WouoUI_CanvasWriteByte(canvas, x, y + 8, font.table[(c * 2 + 1) * 8 + i]);
-    //         x++;
-    //         if (x > canvas->w)
-    //             break; // 已经超出边框没必要再写了
-    //     }
-    //     break;
-
-    // case 1224: // 24号字12*24
-    //     for (uint8_t i = 0; i < 12; i++) {
-    //         WouoUI_CanvasWriteByte(canvas, x, y, font.table[c * 3 * 12 + i]);
-    //         WouoUI_CanvasWriteByte(canvas, x, y + 8, font.table[(c * 3 + 1) * 12 + i]);
-    //         WouoUI_CanvasWriteByte(canvas, x, y + 16, font.table[(c * 3 + 2) * 12 + i]);
-    //         x++;
-    //         if (x > canvas->w)
-    //             break; // 已经超出边框没必要再写了
-    //     }
-    //     break;
-    // default:
-    //     break;
-    // }
-    // (font.Height + 7) / 8 ==> cell(font.Height/8)
     for (uint8_t i = 0; i < font.Width; i++) {
         for (uint8_t j = 0; j < (font.Height + 7) / 8; j++) {
             WouoUI_CanvasWriteByte(
@@ -301,6 +247,116 @@ void WouoUI_CanvasSlideStrReset(SlideStr* ss) {
     ss->slide_enable = false;
     ss->start_delay = WOUOUI_SLIDESTR_START_DELAY;
 }
+
+#if (WOUOUI_SUPPORT_CHINESE_SYMBOL)
+WOUO_WEAK void WouoUI_FindCNSymbol(CH_CN* symbol, cFONT cfont) {
+    uint16_t left = 0, right = 0;
+    uint16_t mid = 0;
+    uint16_t symbol_bytes = 0;
+    int cmp = 0;
+
+    if (symbol == NULL || cfont.index_table == NULL || cfont.table == NULL || cfont.count == 0) {
+        return;
+    }
+
+    symbol->width = 0;
+    symbol->height = 0;
+    symbol->matrix = NULL;
+
+    right = (uint16_t)(cfont.count - 1);
+
+    while (left <= right) {
+        mid = (uint16_t)(left + ((right - left) >> 1));
+        cmp = memcmp(symbol->index, cfont.index_table[mid], sizeof(CNCodeIndexType));
+        if (cmp == 0) {
+            symbol->width = (uint8_t)cfont.Width;
+            symbol->height = (uint8_t)cfont.Height;
+            symbol_bytes = (uint16_t)(cfont.Width * UINT_DIVISION_CELL(cfont.Height, 8));
+            symbol->matrix = cfont.table + mid * symbol_bytes;
+            return;
+        }
+        if (cmp < 0) {
+            if (mid == 0) {
+                break;
+            }
+            right = (uint16_t)(mid - 1);
+        } else {
+            left = (uint16_t)(mid + 1);
+        }
+    }
+}
+
+#    if (WOUOUI_SUPPORT_CNSYMBOL_UNICODE)
+void WouoUI_CanvasDrawCNSymbol(Canvas* canvas, int16_t x, int16_t y, cFONT cfont, char c[3]) {
+#    elif (WOUOUI_SUPPORT_CNSYMBOL_GB2312)
+void WouoUI_CanvasDrawCNSymbol(Canvas* canvas, int16_t x, int16_t y, cFONT cfont, char c[2]) {
+#    endif
+    CH_CN symbol;
+    memcpy(symbol.index, c, sizeof(symbol.index));
+    WouoUI_FindCNSymbol(&symbol,
+                        cfont); // 根据输入的编码在符号表中找到对应的点阵数据，填充symbol.matrix
+    for (uint8_t i = 0; i < symbol.width; i++) {
+        for (uint8_t j = 0; j < (symbol.height + 7) / 8; j++) {
+            WouoUI_CanvasWriteByte(canvas, x, y + j * 8,
+                                   symbol.matrix[i + j * symbol.width]); // 按照点阵数据写入
+        }
+        x++;
+        if (x > canvas->w)
+            break; // 已经超出边框没必要再写了
+    }
+}
+void WouoUI_CanvasDrawMixStr(Canvas* canvas, int16_t x, int16_t y, sFONT sfont, cFONT cfont,
+                             uint8_t* str) {
+    int16_t cur_x = x;
+    int16_t cur_y = y;
+    if (str == NULL)
+        return;
+
+    while (*str != '\0') {
+        if (*str < 0x80) {
+            WouoUI_CanvasDrawASCII(canvas, cur_x, cur_y, sfont, (char)(*str));
+            cur_x += sfont.Width;
+            str++;
+        }
+#    if (WOUOUI_SUPPORT_CNSYMBOL_UNICODE)
+        else {
+            // UTF-8 三字节字符(常见中文区间)，按 3 字节编码查索引表。
+            if (((str[0] & 0xF0) == 0xE0) && str[1] != '\0' && str[2] != '\0') {
+                char c[3];
+                c[0] = (char)str[0];
+                c[1] = (char)str[1];
+                c[2] = (char)str[2];
+                WouoUI_CanvasDrawCNSymbol(canvas, cur_x, cur_y, cfont, c);
+                cur_x += cfont.Width;
+                str += 3;
+            } else {
+                // 非法/不支持字节序列，退化为跳过 1 字节，避免死循环。
+                str++;
+            }
+        }
+#    elif (WOUOUI_SUPPORT_CNSYMBOL_GB2312)
+        else {
+            // GB2312 双字节字符，高位均为 1。
+            if (str[1] != '\0') {
+                char c[2];
+                c[0] = (char)str[0];
+                c[1] = (char)str[1];
+                WouoUI_CanvasDrawCNSymbol(canvas, cur_x, cur_y, cfont, c);
+                cur_x += cfont.Width;
+                str += 2;
+            } else {
+                str++;
+            }
+        }
+#    endif
+
+        if (cur_x > canvas->w || cur_y > canvas->h) {
+            break;
+        }
+    }
+}
+
+#endif
 
 /**
  * @brief : WouoUI_CanvasDrawStrWithNewline(Canvas *canvas, int16_t x, int16_t y, sFONT font,

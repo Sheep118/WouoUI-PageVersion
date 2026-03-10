@@ -2,7 +2,7 @@
  * Auto-generated font source file
  * Font: unifont_16_0_04
  * Sizes: 12px, 16px
- * Generated: 2026-03-10 01:16:58
+ * Generated: 2026-03-11 01:21:52
  * 
  * Layout: row_column
  * Bit Order: lsb
@@ -207,7 +207,6 @@ const uint8_t unifont_16_0_04_8x10[] = {
 
 const sFONT unifont_16_0_04_8x10_t = {
     .table = unifont_16_0_04_8x10,
-    .WidthHeight = 810,
     .Width = 8,
     .Height = 10
 };
@@ -503,7 +502,6 @@ const uint8_t unifont_16_0_04_9x15[] = {
 
 const sFONT unifont_16_0_04_9x15_t = {
     .table = unifont_16_0_04_9x15,
-    .WidthHeight = 915,
     .Width = 9,
     .Height = 15
 };

@@ -2,7 +2,7 @@
  * Auto-generated font source file
  * Font: TerminessNerdFont_BoldItalic
  * Sizes: 8px, 12px, 16px
- * Generated: 2026-03-10 01:16:57
+ * Generated: 2026-03-11 01:21:50
  * 
  * Layout: row_column
  * Bit Order: lsb
@@ -112,7 +112,6 @@ const uint8_t TerminessNerdFont_BoldItalic_8x7[] = {
 
 const sFONT TerminessNerdFont_BoldItalic_8x7_t = {
     .table = TerminessNerdFont_BoldItalic_8x7,
-    .WidthHeight = 807,
     .Width = 8,
     .Height = 7
 };
@@ -408,7 +407,6 @@ const uint8_t TerminessNerdFont_BoldItalic_11x12[] = {
 
 const sFONT TerminessNerdFont_BoldItalic_11x12_t = {
     .table = TerminessNerdFont_BoldItalic_11x12,
-    .WidthHeight = 1112,
     .Width = 11,
     .Height = 12
 };
@@ -704,7 +702,6 @@ const uint8_t TerminessNerdFont_BoldItalic_12x16[] = {
 
 const sFONT TerminessNerdFont_BoldItalic_12x16_t = {
     .table = TerminessNerdFont_BoldItalic_12x16,
-    .WidthHeight = 1216,
     .Width = 12,
     .Height = 16
 };

@@ -2,7 +2,7 @@
  * Auto-generated font source file
  * Font: ZLabsBitmap_12px_CN
  * Sizes: 12px, 16px, 24px
- * Generated: 2026-03-10 01:16:54
+ * Generated: 2026-03-11 01:21:48
  * 
  * Layout: row_column
  * Bit Order: lsb
@@ -207,7 +207,6 @@ const uint8_t ZLabsBitmap_12px_CN_7x11[] = {
 
 const sFONT ZLabsBitmap_12px_CN_7x11_t = {
     .table = ZLabsBitmap_12px_CN_7x11,
-    .WidthHeight = 711,
     .Width = 7,
     .Height = 11
 };
@@ -503,7 +502,6 @@ const uint8_t ZLabsBitmap_12px_CN_9x15[] = {
 
 const sFONT ZLabsBitmap_12px_CN_9x15_t = {
     .table = ZLabsBitmap_12px_CN_9x15,
-    .WidthHeight = 915,
     .Width = 9,
     .Height = 15
 };
@@ -989,7 +987,6 @@ const uint8_t ZLabsBitmap_12px_CN_12x22[] = {
 
 const sFONT ZLabsBitmap_12px_CN_12x22_t = {
     .table = ZLabsBitmap_12px_CN_12x22,
-    .WidthHeight = 1222,
     .Width = 12,
     .Height = 22
 };

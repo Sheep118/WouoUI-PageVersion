@@ -2,7 +2,7 @@
  * Auto-generated font header file
  * Font: ZLabsBitmap_12px_CN
  * Sizes: 12px, 16px, 24px
- * Generated: 2026-03-10 01:16:54
+ * Generated: 2026-03-11 01:21:48
  * 
  * Layout: row_column
  * Bit Order: lsb

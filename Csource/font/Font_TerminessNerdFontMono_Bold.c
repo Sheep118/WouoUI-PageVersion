@@ -2,7 +2,7 @@
  * Auto-generated font source file
  * Font: TerminessNerdFontMono_Bold
  * Sizes: 8px, 12px, 16px
- * Generated: 2026-03-10 01:16:57
+ * Generated: 2026-03-11 01:21:51
  * 
  * Layout: row_column
  * Bit Order: lsb
@@ -112,7 +112,6 @@ const uint8_t TerminessNerdFontMono_Bold_6x7[] = {
 
 const sFONT TerminessNerdFontMono_Bold_6x7_t = {
     .table = TerminessNerdFontMono_Bold_6x7,
-    .WidthHeight = 607,
     .Width = 6,
     .Height = 7
 };
@@ -313,7 +312,6 @@ const uint8_t TerminessNerdFontMono_Bold_8x12[] = {
 
 const sFONT TerminessNerdFontMono_Bold_8x12_t = {
     .table = TerminessNerdFontMono_Bold_8x12,
-    .WidthHeight = 812,
     .Width = 8,
     .Height = 12
 };
@@ -609,7 +607,6 @@ const uint8_t TerminessNerdFontMono_Bold_10x16[] = {
 
 const sFONT TerminessNerdFontMono_Bold_10x16_t = {
     .table = TerminessNerdFontMono_Bold_10x16,
-    .WidthHeight = 1016,
     .Width = 10,
     .Height = 16
 };

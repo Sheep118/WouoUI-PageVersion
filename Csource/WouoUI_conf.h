@@ -2,6 +2,7 @@
 #define __WOUOUI_CONF_H__
 
 //---------------------与调试相关的参数
+#include "./font/WouoUI_font.h" // 字体头文件，同时包含一些字体的配置
 
 #define WOUOUI_LOG_ENABLE // 是否使能WouoUI_Log的打印，使能的话需要实现下面的LOG打印函数
 #ifdef WOUOUI_LOG_ENABLE

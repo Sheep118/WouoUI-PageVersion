@@ -28,4 +28,13 @@
 #define WOUOUI_LOG_I(fmt, ...)                                                                     \
     WOUOUI_LOG("info,In %s[%d]:" fmt "\r\n", __FILE__, __LINE__, ##__VA_ARGS__)
 
+// 弱函数关键字
+#if defined(__GNUC__)
+#    define WOUO_WEAK __attribute__((weak))
+#elif defined(__CC_ARM) || defined(__ARMCC_VERSION)
+#    define WOUO_WEAK __weak
+#else
+#    define WOUO_WEAK
+#endif
+
 #endif

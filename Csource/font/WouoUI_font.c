@@ -2024,35 +2024,30 @@ const uint8_t F12X24[] = {
 
 const sFONT Font_6_8 = {
     F6x8,
-    68,
     6, /* Width */
     8, /* Height */
 };
 
 const sFONT Font_6_12 = {
     F6x12,
-    612,
     6,  /* Width */
     12, /* Height */
 };
 
 const sFONT Font_7_12 = {
     F7x12,
-    712,
     7,  /* Width */
     12, /* Height */
 };
 
 const sFONT Font_8_16 = {
     F8X16,
-    816,
     8,  /* Width */
     16, /* Height */
 };
 
 const sFONT Font_12_24 = {
     F12X24,
-    1224,
     12, /* Width */
     24, /* Height */
 };

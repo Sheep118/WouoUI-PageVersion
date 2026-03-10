@@ -1,6 +1,7 @@
 #ifndef __WOUOUI_GRAPH_H__
 #define __WOUOUI_GRAPH_H__
 
+#include <stdint.h>
 #ifdef __cplusplus
 extern "C" {
 #endif

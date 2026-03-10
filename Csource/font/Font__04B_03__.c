@@ -2,7 +2,7 @@
  * Auto-generated font source file
  * Font: _04B_03__
  * Sizes: 6px, 8px, 12px
- * Generated: 2026-03-10 01:16:58
+ * Generated: 2026-03-11 01:21:52
  * 
  * Layout: row_column
  * Bit Order: lsb
@@ -112,7 +112,6 @@ const uint8_t _04B_03___7x6[] = {
 
 const sFONT _04B_03___7x6_t = {
     .table = _04B_03___7x6,
-    .WidthHeight = 706,
     .Width = 7,
     .Height = 6
 };
@@ -218,7 +217,6 @@ const uint8_t _04B_03___7x7[] = {
 
 const sFONT _04B_03___7x7_t = {
     .table = _04B_03___7x7,
-    .WidthHeight = 707,
     .Width = 7,
     .Height = 7
 };
@@ -514,7 +512,6 @@ const uint8_t _04B_03___10x11[] = {
 
 const sFONT _04B_03___10x11_t = {
     .table = _04B_03___10x11,
-    .WidthHeight = 1011,
     .Width = 10,
     .Height = 11
 };

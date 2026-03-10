@@ -468,11 +468,9 @@ class CFileGenerator:
             source += "\n".join(lines) + "\n"
             source += "};\n\n"
             
-            # 生成结构体定义
-            width_height = unified_width * 100 + unified_height
+            # 生成结构体定义（与当前sFONT保持一致）
             source += f"const sFONT {struct_name} = {{\n"
             source += f"    .table = {array_name},\n"
-            source += f"    .WidthHeight = {width_height},\n"
             source += f"    .Width = {unified_width},\n"
             source += f"    .Height = {unified_height}\n"
             source += "};\n\n"

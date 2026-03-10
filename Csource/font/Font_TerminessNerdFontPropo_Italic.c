@@ -2,7 +2,7 @@
  * Auto-generated font source file
  * Font: TerminessNerdFontPropo_Italic
  * Sizes: 8px, 12px, 16px
- * Generated: 2026-03-10 01:16:58
+ * Generated: 2026-03-11 01:21:52
  * 
  * Layout: row_column
  * Bit Order: lsb
@@ -112,7 +112,6 @@ const uint8_t TerminessNerdFontPropo_Italic_7x7[] = {
 
 const sFONT TerminessNerdFontPropo_Italic_7x7_t = {
     .table = TerminessNerdFontPropo_Italic_7x7,
-    .WidthHeight = 707,
     .Width = 7,
     .Height = 7
 };
@@ -408,7 +407,6 @@ const uint8_t TerminessNerdFontPropo_Italic_11x12[] = {
 
 const sFONT TerminessNerdFontPropo_Italic_11x12_t = {
     .table = TerminessNerdFontPropo_Italic_11x12,
-    .WidthHeight = 1112,
     .Width = 11,
     .Height = 12
 };
@@ -704,7 +702,6 @@ const uint8_t TerminessNerdFontPropo_Italic_12x16[] = {
 
 const sFONT TerminessNerdFontPropo_Italic_12x16_t = {
     .table = TerminessNerdFontPropo_Italic_12x16,
-    .WidthHeight = 1216,
     .Width = 12,
     .Height = 16
 };
