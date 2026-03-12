@@ -3,3 +3,4 @@
 # bdfparser>=2.0.0
 pyyaml>=6.0
 freetype-py>=2.5.1
+chardet>=5.2.0

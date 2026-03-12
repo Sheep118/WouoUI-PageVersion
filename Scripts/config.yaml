@@ -1,10 +1,41 @@
 # WouoUI 字体转换配置文件
 # Font Conversion Configuration
 
-# 扫描配置 (暂时保留)
+# 扫描配置
 scan:
-  # 这里预留扫描脚本的配置项
-  # 后续扩展: scan_paths, include_exts, exclude_paths, output_report 等
+  # 文件无BOM时优先尝试的编码（按顺序严格解码）
+  # 都失败后再使用 chardet 猜测
+  bomless_preferred_encodings:
+    - utf-8
+    - gb2312
+
+  # 扫描入口（可同时配置文件和目录，路径相对 Scripts 目录）
+  scan_paths:
+    - ../Csource
+
+  # 只扫描这些扩展名
+  include_exts:
+    - .c
+    - .h
+
+  # 排除路径（文件或目录，相对 Scripts 目录）
+  exclude_paths:
+    - ../Csource/font
+
+  # 按函数名排除其参数字符串（典型：printf("...")）
+  # 匹配规则：字符串前缀末尾满足 func_name( ...
+  exclude_functions:
+    - printf
+    - fprintf
+    - snprintf
+
+  # 按“字符串前缀上下文”正则排除（可选）
+  # 注意：这是 Python 正则，建议锚定到前缀末尾（$）
+  exclude_context_patterns:
+    - 'LOG_[A-Z]+\s*\($'
+
+  # 扫描输出报告（UTF-8纯文本）
+  output_report: ./scan_result.txt
 
 # 生成字体配置
 generate:
