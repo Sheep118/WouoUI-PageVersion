@@ -29,13 +29,15 @@ class CFileGenerator:
         self.config = {
             'layout': 'row_column',
             'bit_order': 'lsb',
-            'encoding': 'positive'
+            'encoding': 'positive',
+            'chinese_encoding': 'utf-8'
         }
         if config:
             self.config.update(config)
         
         # 存储多个尺寸的字体数据
         self.font_sizes = []  # 列表: [{'size': 12, 'data': {...}}, ...]
+        self.cn_font_sizes = []
     
     def add_font_size(self, font_size, char_data, start_char=32, end_char=126):
         """
@@ -60,6 +62,14 @@ class CFileGenerator:
             'data': char_data,
             'start_char': start_char,
             'end_char': end_char
+        })
+
+    def add_cn_font_size(self, font_size, char_data, char_list=None):
+        """添加一个中文字体尺寸的数据。"""
+        self.cn_font_sizes.append({
+            'size': font_size,
+            'data': char_data,
+            'chars': list(char_list or [])
         })
     
     def _sanitize_name(self, name):
@@ -92,6 +102,39 @@ class CFileGenerator:
     def _get_array_name(self, width, height):
         """获取指定实际宽高的数组名称"""
         return f"{self.font_name}_{width}x{height}"
+
+    def _get_cn_array_name(self, width, height):
+        return f"{self.font_name}_{width}x{height}_CN"
+
+    def _get_cn_struct_name(self, width, height):
+        return f"{self.font_name}_{width}x{height}_CN_t"
+
+    def _get_cn_index_name(self, width, height):
+        return f"{self.font_name}_{width}x{height}_CN_index"
+
+    def _encode_cn_char(self, char):
+        encoding = str(self.config.get('chinese_encoding', 'utf-8')).lower()
+        if encoding == 'gb2312':
+            data = char.encode('gb2312')
+        else:
+            data = char.encode('utf-8')
+        return data
+
+    def _format_byte_literal(self, byte_value):
+        return f"'\\x{byte_value:02X}'"
+
+    def _build_cn_entries(self, char_data):
+        entries = []
+        for item in char_data:
+            char = item['char']
+            encoded = self._encode_cn_char(char)
+            entries.append({
+                'char': char,
+                'encoded': encoded,
+                'item': item,
+            })
+        entries.sort(key=lambda entry: entry['encoded'])
+        return entries
     
     def generate_header(self):
         """
@@ -101,11 +144,13 @@ class CFileGenerator:
             str: 头文件内容
         """
         guard_name = f"__FONT_{self.font_name.upper()}_H"
-        
+
+        all_sizes = [str(s['size']) + 'px' for s in self.font_sizes]
+        cn_sizes = [str(s['size']) + 'px(CN)' for s in self.cn_font_sizes]
         header = f"""/**
  * Auto-generated font header file
  * Font: {self.font_name}
- * Sizes: {', '.join([str(s['size']) + 'px' for s in self.font_sizes])}
+ * Sizes: {', '.join(all_sizes + cn_sizes)}
  * Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
  * 
  * Layout: {self.config['layout']}
@@ -140,6 +185,27 @@ class CFileGenerator:
             header += f"/* Font data for {size}px */\n"
             header += f"extern const uint8_t {array_name}[];\n"
             header += f"extern const sFONT {struct_name};\n\n"
+
+        for size_info in self.cn_font_sizes:
+            size = size_info['size']
+            char_data = size_info['data']
+
+            if char_data:
+                unified_width = self._get_unified_width(char_data)
+                baseline_metrics = self._get_baseline_metrics(char_data)
+                unified_height = baseline_metrics['total_height']
+            else:
+                unified_width = 0
+                unified_height = 0
+
+            array_name = self._get_cn_array_name(unified_width, unified_height)
+            index_name = self._get_cn_index_name(unified_width, unified_height)
+            struct_name = self._get_cn_struct_name(unified_width, unified_height)
+
+            header += f"/* Chinese font data for {size}px */\n"
+            header += f"extern const uint8_t {array_name}[];\n"
+            header += f"extern const CNCodeIndexType {index_name}[];\n"
+            header += f"extern const cFONT {struct_name};\n\n"
         
         header += f"#endif /* {guard_name} */\n"
         return header
@@ -364,10 +430,12 @@ class CFileGenerator:
         Returns:
             str: 源文件内容
         """
+        all_sizes = [str(s['size']) + 'px' for s in self.font_sizes]
+        cn_sizes = [str(s['size']) + 'px(CN)' for s in self.cn_font_sizes]
         source = f"""/**
  * Auto-generated font source file
  * Font: {self.font_name}
- * Sizes: {', '.join([str(s['size']) + 'px' for s in self.font_sizes])}
+ * Sizes: {', '.join(all_sizes + cn_sizes)}
  * Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
  * 
  * Layout: {self.config['layout']}
@@ -474,6 +542,80 @@ class CFileGenerator:
             source += f"    .Width = {unified_width},\n"
             source += f"    .Height = {unified_height}\n"
             source += "};\n\n"
+
+        for size_info in self.cn_font_sizes:
+            size = size_info['size']
+            char_data = size_info['data']
+
+            if char_data:
+                unified_width = self._get_unified_width(char_data)
+                baseline_metrics = self._get_baseline_metrics(char_data)
+                baseline_offsets = baseline_metrics['offsets']
+                unified_height = baseline_metrics['total_height']
+            else:
+                unified_width = 0
+                unified_height = 0
+                baseline_offsets = {}
+
+            array_name = self._get_cn_array_name(unified_width, unified_height)
+            index_name = self._get_cn_index_name(unified_width, unified_height)
+            struct_name = self._get_cn_struct_name(unified_width, unified_height)
+            cn_entries = self._build_cn_entries(char_data)
+
+            source += f"/* Chinese font data for {size}px - {unified_width}x{unified_height} per character (sorted by {self.config['chinese_encoding']}) */\n"
+            source += f"const uint8_t {array_name}[] = {{\n"
+
+            cn_lines = []
+            current_line = []
+            bytes_per_line = 8
+            total_entries = len(cn_entries)
+
+            for entry_index, entry in enumerate(cn_entries):
+                char_item = entry['item']
+                char_baseline_offset = baseline_offsets.get(char_item['ord'], 0)
+                bytes_list = self._rebuild_bytes_with_unified_width(
+                    char_item,
+                    unified_width,
+                    unified_height,
+                    char_baseline_offset,
+                )
+                if not bytes_list:
+                    continue
+
+                comment = f"{entry['char']} U+{ord(entry['char']):04X}"
+                for byte_idx, byte_val in enumerate(bytes_list):
+                    is_last_byte = (
+                        entry_index == total_entries - 1 and byte_idx == len(bytes_list) - 1
+                    )
+                    hex_str = f"0x{byte_val:02X}"
+                    current_line.append(hex_str if is_last_byte else hex_str + ',')
+                    if len(current_line) == bytes_per_line or byte_idx == len(bytes_list) - 1:
+                        line_str = "    " + " ".join(current_line)
+                        if byte_idx == len(bytes_list) - 1:
+                            line_str += f" /* {comment} */"
+                        cn_lines.append(line_str)
+                        current_line = []
+
+            source += "\n".join(cn_lines) + "\n"
+            source += "};\n\n"
+
+            source += f"const CNCodeIndexType {index_name}[] = {{\n"
+            index_lines = []
+            for entry in cn_entries:
+                byte_literals = ', '.join(self._format_byte_literal(b) for b in entry['encoded'])
+                index_lines.append(
+                    f"    {{{byte_literals}}}, /* {entry['char']} U+{ord(entry['char']):04X} */"
+                )
+            source += "\n".join(index_lines) + "\n"
+            source += "};\n\n"
+
+            source += f"const cFONT {struct_name} = {{\n"
+            source += f"    .table = (const char*){array_name},\n"
+            source += f"    .index_table = {index_name},\n"
+            source += f"    .count = {len(cn_entries)},\n"
+            source += f"    .Width = {unified_width},\n"
+            source += f"    .Height = {unified_height}\n"
+            source += "};\n\n"
         
         return source
     
@@ -512,7 +654,7 @@ class CFileGenerator:
             str: 摘要信息
         """
         summary = f"Font: {self.font_name}\n"
-        summary += f"Sizes: {len(self.font_sizes)} sizes\n"
+        summary += f"ASCII Sizes: {len(self.font_sizes)} sizes\n"
         
         for size_info in self.font_sizes:
             size = size_info['size']
@@ -525,18 +667,31 @@ class CFileGenerator:
                 right_pad = spacing_config.get('right_pad', 0)
                 
                 unified_width = self._get_unified_width(char_data)
-                unified_height = self._get_unified_height(char_data)
+                baseline_metrics = self._get_baseline_metrics(char_data)
+                unified_height = baseline_metrics['total_height']
                 
                 # 显示详细信息
                 if left_pad > 0 or right_pad > 0:
                     summary += f"  {size}px: {unified_width}x{unified_height} (actual {actual_width}+{left_pad+right_pad} padding), {len(char_data)} characters\n"
                 else:
                     summary += f"  {size}px: {unified_width}x{unified_height}, {len(char_data)} characters\n"
+
+        if self.cn_font_sizes:
+            summary += f"Chinese Sizes: {len(self.cn_font_sizes)} sizes\n"
+            for size_info in self.cn_font_sizes:
+                size = size_info['size']
+                char_data = size_info['data']
+                if char_data:
+                    unified_width = self._get_unified_width(char_data)
+                    baseline_metrics = self._get_baseline_metrics(char_data)
+                    unified_height = baseline_metrics['total_height']
+                    summary += f"  {size}px(CN): {unified_width}x{unified_height}, {len(char_data)} characters\n"
         
         summary += f"Config:\n"
         summary += f"  Layout: {self.config['layout']}\n"
         summary += f"  Bit Order: {self.config['bit_order']}\n"
         summary += f"  Encoding: {self.config['encoding']}\n"
+        summary += f"  Chinese Encoding: {self.config.get('chinese_encoding', 'utf-8')}\n"
         
         # 显示字符间距配置
         spacing_config = self.config.get('char_spacing', {})

@@ -257,6 +257,75 @@ def extract_chinese_chars(text):
     return pattern.findall(text)
 
 
+def load_scan_result(report_path):
+    """从扫描报告中读取中文频次表与字符集合。"""
+    if not os.path.exists(report_path):
+        raise FileNotFoundError(f'扫描结果文件不存在: {report_path}')
+
+    with open(report_path, 'r', encoding='utf-8') as f:
+        content = f.read()
+
+    counter = Counter()
+
+    table_match = re.search(
+        r'【全部中文字符（按频次排序）】\s*\n\s*\n字符\s+频次\s*\n-+\s*\n(?P<body>.*?)\n\s*=+',
+        content,
+        flags=re.DOTALL,
+    )
+    if table_match:
+        for line in table_match.group('body').splitlines():
+            line = line.strip()
+            if not line:
+                continue
+            parts = line.split()
+            if len(parts) < 2:
+                continue
+            char = parts[0]
+            try:
+                count = int(parts[-1])
+            except ValueError:
+                continue
+            counter[char] = count
+
+    charset_match = re.search(
+        r'【所有中文字符集合（可直接用于字体生成）】\s*\n\s*\n(?P<charset>.*?)\s*$',
+        content,
+        flags=re.DOTALL,
+    )
+    charset = ''
+    if charset_match:
+        charset = ''.join(ch for ch in charset_match.group('charset') if not ch.isspace())
+
+    if not charset and counter:
+        charset = ''.join(ch for ch, _ in counter.most_common())
+
+    unique_chars = []
+    seen = set()
+    for ch in charset:
+        if ch not in seen:
+            seen.add(ch)
+            unique_chars.append(ch)
+
+    return {
+        'report_path': report_path,
+        'counter': counter,
+        'charset': ''.join(unique_chars),
+        'char_list': unique_chars,
+    }
+
+
+def print_frequency_summary(counter, limit=None):
+    """在终端打印扫描得到的中文频次。"""
+    if not counter:
+        print('[scan] 未发现中文字符')
+        return
+
+    print('[scan] 中文字符频次:')
+    items = counter.most_common(limit)
+    for ch, count in items:
+        print(f'  {ch}: {count}')
+
+
 # ============================================================
 # 文件 / 目录扫描
 # ============================================================

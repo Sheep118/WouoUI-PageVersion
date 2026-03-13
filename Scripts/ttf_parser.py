@@ -225,6 +225,31 @@ class TTFParser:
                     'baseline_top': baseline_top
                 })
         return result
+
+    def render_charset(self, chars):
+        """渲染指定字符集合，返回成功字形与缺失字符。"""
+        result = []
+        missing_chars = []
+
+        for char in chars:
+            pixels, width, height = self.render_character(char)
+            if pixels is None or width <= 0 or height <= 0:
+                missing_chars.append(char)
+                continue
+
+            metrics = self.get_glyph_metrics(char)
+            baseline_top = metrics['bitmap_top'] if metrics else height
+            result.append({
+                'char': char,
+                'pixels': pixels,
+                'width': width,
+                'height': height,
+                'ord': ord(char),
+                'bytes': self.pixels_to_bytes(pixels),
+                'baseline_top': baseline_top
+            })
+
+        return result, missing_chars
     
     def print_pixels_preview(self, pixels, label=None):
         """

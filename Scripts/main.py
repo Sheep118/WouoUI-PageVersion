@@ -14,6 +14,7 @@ from pathlib import Path
 from ttf_parser import TTFParser
 from bdf_parser import BDFParser
 from cfile_generater import CFileGenerator
+from char_scanner import CharScanner, load_scan_result, print_frequency_summary
 
 
 class FontGenerator:
@@ -29,6 +30,7 @@ class FontGenerator:
         self.config_path = config_path
         self.config = self._load_config()
         self.script_dir = os.path.dirname(__file__)
+        self.scan_summary = None
     
     def _load_config(self):
         """
@@ -56,8 +58,39 @@ class FontGenerator:
         """
         full_path = os.path.join(self.script_dir, relative_path)
         return os.path.abspath(full_path)
+
+    def scan_chinese_charset(self):
+        """执行中文扫描，并从扫描报告中重新读取字符集与频次。"""
+        scanner = CharScanner(self.config_path)
+        scanner.run()
+
+        scan_cfg = self.config.get('scan', {})
+        report_path = self._resolve_path(scan_cfg.get('output_report', './scan_result.txt'))
+        summary = load_scan_result(report_path)
+        print_frequency_summary(summary['counter'])
+        self.scan_summary = summary
+        return summary
+
+    def _filter_chars_by_encoding(self, chars):
+        """过滤无法用当前中文索引编码表示的字符。"""
+        chinese_encoding = self.config.get('generate', {}).get('chinese_encoding', 'utf-8')
+        accepted = []
+        skipped = []
+
+        for char in chars:
+            try:
+                char.encode(chinese_encoding)
+                accepted.append(char)
+            except UnicodeEncodeError:
+                skipped.append(char)
+
+        if skipped:
+            print(f"[!] 以下中文字符无法使用 {chinese_encoding} 编码，已跳过: {''.join(skipped)}")
+
+        return accepted
     
-    def generate_font(self, font_path, font_sizes=None, font_type=None, char_spacing_override=None):
+    def generate_font(self, font_path, font_sizes=None, font_type=None, char_spacing_override=None,
+                      cn_chars=None):
         """
         生成一个字体的多个尺寸
         
@@ -66,6 +99,7 @@ class FontGenerator:
             font_sizes (list): 字体尺寸列表 (默认从config读取)
             font_type (str): 字体类型 ('ttf'、'bdf'或None=自动检测)
             char_spacing_override (dict): 覆盖默认的char_spacing配置
+            cn_chars (list[str] | None): 要额外生成的中文字符列表
             
         Returns:
             tuple: (成功标志, 生成的文件路径)
@@ -90,7 +124,8 @@ class FontGenerator:
             'layout': layout,
             'bit_order': bit_order,
             'encoding': encoding,
-            'char_spacing': char_spacing
+            'char_spacing': char_spacing,
+            'chinese_encoding': gen_config.get('chinese_encoding', 'utf-8')
         }
         
         # 获取字体期望大小
@@ -135,6 +170,7 @@ class FontGenerator:
             font_sizes = [12]  # 默认尺寸
 
         successful_sizes = 0
+        cn_successful_sizes = 0
         
         # 处理每个字体尺寸
         for font_size in font_sizes:
@@ -169,6 +205,18 @@ class FontGenerator:
                 # 添加到生成器
                 generator.add_font_size(font_size, char_data, start_char, end_char)
                 successful_sizes += 1
+
+                if cn_chars:
+                    cn_char_data, missing_chars = parser.render_charset(cn_chars)
+                    if cn_char_data:
+                        generator.add_cn_font_size(font_size, cn_char_data, cn_chars)
+                        cn_successful_sizes += 1
+                        print(f"  [+] 渲染中文 {len(cn_char_data)} 个字符")
+                    else:
+                        print(f"  [!] 尺寸 {font_size}px 未渲染到任何中文字形")
+
+                    if missing_chars:
+                        print(f"  [!] 尺寸 {font_size}px 缺失中文字符: {''.join(missing_chars)}")
                 
                 # 是否显示预览
                 if preview_config.get('enabled', True) and preview_config.get('print_output', True):
@@ -193,6 +241,9 @@ class FontGenerator:
         if successful_sizes == 0:
             print(f"[-] 字体 {font_basename} 没有成功生成任何尺寸，已跳过")
             return False, None
+
+        if cn_chars and cn_successful_sizes == 0:
+            print(f"[!] 字体 {font_basename} 未生成任何中文数组，请确认字体是否包含所需中文")
         
         # 生成C文件
         print(f"\n生成C文件...")
@@ -257,6 +308,16 @@ class FontGenerator:
         print(f"\n{'='*60}")
         print(f"处理 profile: {profile_name}")
         print(f"{'='*60}")
+
+        gen_config = self.config.get('generate', {})
+        chinese_profile_name = gen_config.get('chinese_profile_name', 'chinese_fonts')
+        cn_chars = []
+        if profile_name == chinese_profile_name and self.scan_summary is not None:
+            cn_chars = self._filter_chars_by_encoding(self.scan_summary.get('char_list', []))
+            if cn_chars:
+                print(f"[+] profile '{profile_name}' 将额外生成 {len(cn_chars)} 个中文字符")
+            else:
+                print(f"[!] profile '{profile_name}' 没有可生成的中文字符")
         
         font_paths = profile_config.get('font_paths', [])
         sizes = profile_config.get('sizes', [12])
@@ -286,7 +347,8 @@ class FontGenerator:
                     font_file, 
                     font_sizes=sizes,
                     font_type=None,  # 自动检测
-                    char_spacing_override=char_spacing_override
+                    char_spacing_override=char_spacing_override,
+                    cn_chars=cn_chars,
                 )
                 if success and files:
                     success_count += 1
@@ -461,6 +523,8 @@ def main():
         if success_count == 0:
             sys.exit(1)
         return
+
+    generator.scan_chinese_charset()
     
     # 处理 profile 方式
     profiles_to_process = []

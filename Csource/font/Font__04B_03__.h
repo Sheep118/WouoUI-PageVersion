@@ -2,7 +2,7 @@
  * Auto-generated font header file
  * Font: _04B_03__
  * Sizes: 6px, 8px, 12px
- * Generated: 2026-03-11 01:21:52
+ * Generated: 2026-03-14 01:44:16
  * 
  * Layout: row_column
  * Bit Order: lsb

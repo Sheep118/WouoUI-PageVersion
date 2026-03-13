@@ -29,7 +29,7 @@ Option mian_option_array[MAIN_PAGE_NUM] = {
     {.text = (char*)"+ Setting"},
     {.text = (char*)"+ Wave你好啊"},
     {
-        .text = (char*)"~ This is a volumn page for test win in win我",
+        .text = (char*)"~ This is a volumn 哦哦哦 page for test win in win我",
     },
     {.text = (char*)"% Spin", .val = 123456, .decimalNum = DecimalNum_2},
     {.text = (char*)"- About"}};

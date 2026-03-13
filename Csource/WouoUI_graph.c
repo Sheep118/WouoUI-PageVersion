@@ -204,7 +204,9 @@ void WouoUI_CanvasDrawStr(Canvas* canvas, int16_t x, int16_t y, sFONT font, uint
 }
 
 void WouoUI_CanvasDrawSlideStr(SlideStr* ss, int16_t y, sFONT font) {
-    WouoUI_CanvasDrawStr(&(ss->canvas), ss->str_start_x, y, font, (uint8_t*)(ss->str));
+    // WouoUI_CanvasDrawStr(&(ss->canvas), ss->str_start_x, y, font, (uint8_t*)(ss->str));
+    WouoUI_CanvasDrawMixStr(&(ss->canvas), ss->str_start_x, y, font, ZLabsBitmap_12px_CN_24x24_CN_t,
+                            (uint8_t*)(ss->str));
     if (ss->canvas.w >= WouoUI_GetStrWidth(ss->str, font)) {
         ss->slide_enable = false;   // 失能滚动
         ss->slide_is_finish = true; // 不需要滚动时，单次滚动标记完成

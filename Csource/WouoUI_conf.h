@@ -24,19 +24,19 @@
 #define WOUOUI_SLIDESTR_START_DELAY 20 // slidestr开始滑动的延迟大小(最大255)
 
 //------------------与title页面相关的默认参数
-#define DEFAULT_TILE_B_TITLE_FNOT TerminessNerdFont_BoldItalic_12x16_t // 磁贴大标题字体
-#define DEFAULT_TILE_ICON_W 30                                         // 磁贴图标宽度
-#define DEFAULT_TILE_ICON_H 30                                         // 磁贴图标高度
-#define DEFAULT_TILE_ICON_IND_U 3                                      // 磁贴指示器与磁贴的上边距
-#define DEFAULT_TILE_ICON_IND_D 3                                      // 磁贴指示器与磁贴的下边距
-#define DEFAULT_TILE_ICON_IND_L 3                                      // 磁贴指示器与磁贴的左边距
-#define DEFAULT_TILE_ICON_IND_R 3                                      // 磁贴指示器与磁贴的右边距
-#define DEFAULT_TILE_ICON_IND_SL 5                                     // 磁贴指示器边长SideLength
-#define DEFAULT_TILE_ICON_S 6        // 磁贴图标间距(图标边和边的距离)
-#define DEFAULT_TILE_BAR_D 2         // 磁贴装饰条下边距
-#define DEFAULT_TILE_BAR_W 8         // 磁贴装饰条宽度
-#define DEFAULT_TILE_BAR_H 24        // 磁贴装饰条高度
-#define DEFAULT_TILE_SLIDESTR_MODE 2 // 磁贴标题文本的滚动模式
+#define DEFAULT_TILE_B_TITLE_FNOT ZLabsBitmap_12px_CN_12x22_t // 磁贴大标题字体
+#define DEFAULT_TILE_ICON_W 30                                // 磁贴图标宽度
+#define DEFAULT_TILE_ICON_H 30                                // 磁贴图标高度
+#define DEFAULT_TILE_ICON_IND_U 3                             // 磁贴指示器与磁贴的上边距
+#define DEFAULT_TILE_ICON_IND_D 3                             // 磁贴指示器与磁贴的下边距
+#define DEFAULT_TILE_ICON_IND_L 3                             // 磁贴指示器与磁贴的左边距
+#define DEFAULT_TILE_ICON_IND_R 3                             // 磁贴指示器与磁贴的右边距
+#define DEFAULT_TILE_ICON_IND_SL 5                            // 磁贴指示器边长SideLength
+#define DEFAULT_TILE_ICON_S 6                                 // 磁贴图标间距(图标边和边的距离)
+#define DEFAULT_TILE_BAR_D 2                                  // 磁贴装饰条下边距
+#define DEFAULT_TILE_BAR_W 8                                  // 磁贴装饰条宽度
+#define DEFAULT_TILE_BAR_H 24                                 // 磁贴装饰条高度
+#define DEFAULT_TILE_SLIDESTR_MODE 2                          // 磁贴标题文本的滚动模式
 //------------------与list页面相关的默认参数
 #define DEFAULT_LIST_TEXT_FONT unifont_16_0_04_8x10_t // 列表文字的字体
 #define DEFAULT_LIST_TEXT_U_S 1                       // 列表文字的上边距

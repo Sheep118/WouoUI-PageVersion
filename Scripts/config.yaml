@@ -39,6 +39,13 @@ scan:
 
 # 生成字体配置
 generate:
+  # 用于生成中文数组的 profile 名称
+  chinese_profile_name: chinese_fonts
+
+  # 中文索引编码方式，必须与 WouoUI_font.h 中启用的 CNCodeIndexType 定义保持一致
+  # 可选: utf-8, gb2312
+  chinese_encoding: utf-8
+
   # 字体文件夹路径 (相对于脚本所在目录)
   font_folder: ../font
 

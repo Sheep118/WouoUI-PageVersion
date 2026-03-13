@@ -112,6 +112,17 @@ void WouoUI_CanvasDrawPoint(Canvas* canvas, int16_t x, int16_t y);
 void WouoUI_CanvasDrawLine(Canvas* canvas, int16_t x1, int16_t y1, int16_t x2, int16_t y2);
 void WouoUI_BuffAllBlur(BLUR_DEGREE blur);
 
+#if (WOUOUI_SUPPORT_CHINESE_SYMBOL)
+WOUO_WEAK void WouoUI_FindCNSymbol(CH_CN* symbol, cFONT cfont);
+#    if (WOUOUI_SUPPORT_CNSYMBOL_UNICODE)
+void WouoUI_CanvasDrawCNSymbol(Canvas* canvas, int16_t x, int16_t y, cFONT cfont, char c[3]);
+#    elif (WOUOUI_SUPPORT_CNSYMBOL_GB2312)
+void WouoUI_CanvasDrawCNSymbol(Canvas* canvas, int16_t x, int16_t y, cFONT cfont, char c[2]);
+#    endif
+void WouoUI_CanvasDrawMixStr(Canvas* canvas, int16_t x, int16_t y, sFONT sfont, cFONT cfont,
+                             uint8_t* str);
+#endif
+
 #ifdef __cplusplus
 }
 #endif
