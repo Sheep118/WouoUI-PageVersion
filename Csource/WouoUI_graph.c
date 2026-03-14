@@ -24,8 +24,8 @@ void WouoUI_GraphSetPen(Pen* pen) {
 }
 
 /**
- * @brief : void OLED_SetPointColor(uint8_t color)
- * @param : 设置画笔颜色(即在缓存点上写1对应的颜色)，color：0=灭,1=亮,2=反色
+ * @brief : 设置画笔颜色模式
+ * @param : color 画笔颜色模式，0=灭，1=亮，2=反色
  * @attention : None
  */
 void WouoUI_GraphSetPenColor(uint8_t color) {
@@ -47,9 +47,9 @@ void WouoUI_GraphSetPenColor(uint8_t color) {
 }
 
 /**
- * @brief 使能反显
- *
- * @param reverse 是否反显
+ * @brief : 设置画笔反显标志
+ * @param : reverse 是否反显
+ * @attention : 仅影响后续绘制颜色映射
  */
 void WouoUI_GraphReversePenColor(bool reverse) {
     p_cur_pen->rev_color_flag = reverse;
@@ -62,9 +62,9 @@ void WouoUI_GraphSetDynamicBuff(ScreenBuff* buff) {
 #endif
 
 /**
- * @brief : void WouoUI_BuffClear(void)
- * @param : Nonw
- * @attention : 清空整个buff
+ * @brief : 清空整个屏幕缓冲区
+ * @param : None
+ * @attention : 清空值由当前画笔前景色决定（白前景清零，黑前景置 0xFF）
  */
 void WouoUI_BuffClear(void) {
     if (p_cur_pen->color == PEN_COLOR_WHITE) // 前景色为白色，背景刷黑色
@@ -73,8 +73,9 @@ void WouoUI_BuffClear(void) {
         memset(*(cur_screen.p_buff), 0xFF, sizeof(ScreenBuff));
 }
 /**
- * @brief : void WouoUI_BuffSend(void)
- * @param : 更新整个buff到oled
+ * @brief : 发送整个屏幕缓冲区到显示设备
+ * @param : None
+ * @attention : 通过已注册的发送回调输出缓冲区
  */
 void WouoUI_BuffSend(void) {
     cur_screen.p_fun_send_buff(*(cur_screen.p_buff));
@@ -82,8 +83,9 @@ void WouoUI_BuffSend(void) {
 
 #if HARDWARE_DYNAMIC_REFRESH
 /**
- * @brief : void WouoUI_BuffSendDynamic(void)
- * @param : 动态更新整个buff到oled：画面无变化时不更新
+ * @brief : 按变化发送屏幕缓冲区
+ * @param : None
+ * @attention : 与动态缓冲区比较后，仅在内容变化时发送
  */
 void WouoUI_BuffSendDynamic(void) {
     if (memcmp(*(cur_screen.p_buff_dynamic), *(cur_screen.p_buff), sizeof(ScreenBuff))) {
@@ -93,13 +95,14 @@ void WouoUI_BuffSendDynamic(void) {
 }
 #endif
 
-/*
-函数：void WouoUI_BuffWriteByte(uint16_t x, uint16_t y , uint8_t val)
-参数：x y 写入buff的位置，一整个字节的起始位置 coverORadd 对应的字节与\或还是直接覆盖
-注意'='是直接将输入赋值给buff，'|'是将输入为1的位在buff中置1(写白点)，'&'内部会自动取反的，及将输入的val中为1的位在buff中置0（写黑点）
-返回值：无
-说明：主要是用于数组写入时防止越界
-*/
+/**
+ * @brief : 向全局屏幕缓冲区写入 1 字节像素数据
+ * @param : x 横向坐标（字节列）
+ * @param : y 纵向页坐标（每页 8 像素）
+ * @param : val 待写入字节
+ * @attention : 自动做边界检查；按当前画笔模式执行 OR / AND / XOR 写入，
+                注意'='是直接将输入赋值给buff，'|'是将输入为1的位在buff中置1(写白点)，'&'内部会自动取反的，及将输入的val中为1的位在buff中置0（写黑点）
+ */
 static void WouoUI_BuffWriteByte(int16_t x, int16_t y, uint8_t val) {
     if (x > (WOUOUI_BUFF_WIDTH - 1) || y > (WOUOUI_BUFF_HEIGHT_BYTE_NUM - 1) || x < 0 || y < 0)
         return;
@@ -113,9 +116,9 @@ static void WouoUI_BuffWriteByte(int16_t x, int16_t y, uint8_t val) {
 }
 
 /**
- * @brief : WouoUI_BuffAllBlur(BLUR_DEGREE blur)
- * @param : blur为模糊度 BLUR_0_4, BLUR_1_4, BLUR_2_4, BLUR_3_4, BLUR_4_4
- * @attention :
+ * @brief : 对整个缓冲区施加棋盘式模糊图案
+ * @param : blur 模糊度（BLUR_0_4 ~ BLUR_4_4）
+ * @attention : BLUR_0_4 不做处理，其余等级按预设 pattern 覆盖写入
  */
 void WouoUI_BuffAllBlur(BLUR_DEGREE blur) {
     if (blur == BLUR_0_4)
@@ -139,9 +142,12 @@ void WouoUI_BuffAllBlur(BLUR_DEGREE blur) {
 }
 
 /**
- * @brief : static void WouoUI_CanvasWriteByte(Canvas * canvas ,int16_t x, int16_t y, uint8_t val)
- * @param : canvas 画图窗口，x相对于画图原点的横坐标，y相对于画图原点的纵坐标，写入的一个字节
- * @attention : OLED_OK/OUT/ERR
+ * @brief : 向画布相对坐标写入 1 字节像素数据
+ * @param : canvas 目标画布
+ * @param : x 相对画布起点的横向坐标
+ * @param : y 相对画布起点的纵向坐标
+ * @param : val 待写入字节
+ * @attention : 会处理画布边界与页对齐拆分（跨页写入）
  */
 static void WouoUI_CanvasWriteByte(Canvas* canvas, int16_t x, int16_t y, uint8_t val) {
     uint8_t n = 0, m = 0, temp1 = 0, temp2 = 0;
@@ -174,12 +180,16 @@ static void WouoUI_CanvasWriteByte(Canvas* canvas, int16_t x, int16_t y, uint8_t
     }
 }
 
-/*
-函数：void WouoUI_CanvasDrawASCII(Canvas *canvas,int16_t x, int16_t y ,uint8_t size, char c)
-参数：[in] win， x，y ,size(12,16,24) c
-返回值：目前递增到的x的位置
-说明：绘制单个字符
-*/
+/**
+ * @brief : 绘制单个 ASCII 字符
+ * @param : canvas 指定窗口
+ * @param : x 字符绘制起始 x 坐标（相对画布）
+ * @param : y 字符绘制起始 y 坐标（相对画布）
+ * @param : font ASCII 字体
+ * @param : c 待绘制字符
+ * @attention : 超出画布宽度时提前结束
+ * @return : 绘制后的当前 x 坐标（用于连续绘制）
+ */
 int16_t WouoUI_CanvasDrawASCII(Canvas* canvas, int16_t x, int16_t y, sFONT font, char c) {
     c = c - ' '; // 得到偏移值
     for (uint8_t i = 0; i < font.Width; i++) {
@@ -198,7 +208,8 @@ int16_t WouoUI_CanvasDrawASCII(Canvas* canvas, int16_t x, int16_t y, sFONT font,
 /**
  * @brief : void WouoUI_CanvasDrawStr(Canvas *canvas, int16_t x, int16_t y, sFONT font, uint8_t
  * *str)
- * @param : win指定窗口，x，y相对于窗口的坐标，str 字符串
+ * @param : canvas 指定窗口；x/y 相对窗口坐标；font 为 ASCII 字体；str 字符串
+ * @attention : 非可打印 ASCII 字节会记录日志并绘制占位框，避免乱码直出
  */
 void WouoUI_CanvasDrawStr(Canvas* canvas, int16_t x, int16_t y, sFONT font, uint8_t* str) {
     int16_t cur_x = x, cur_y = y;
@@ -220,6 +231,12 @@ void WouoUI_CanvasDrawStr(Canvas* canvas, int16_t x, int16_t y, sFONT font, uint
     }
 }
 
+/**
+ * @brief : void WouoUI_CanvasDrawTextEx(Canvas* canvas, int16_t x, int16_t y, sFONT sfont,
+ * cFONT cfont, uint8_t* str)
+ * @param : 统一文本绘制入口；启用中文时走中英混排，否则退化为 ASCII 绘制
+ * @attention : WOUOUI_SUPPORT_CHINESE_SYMBOL 关闭时 cfont 参数不参与绘制
+ */
 void WouoUI_CanvasDrawTextEx(Canvas* canvas, int16_t x, int16_t y, sFONT sfont, cFONT cfont,
                              uint8_t* str) {
 #if (WOUOUI_SUPPORT_CHINESE_SYMBOL)
@@ -230,6 +247,11 @@ void WouoUI_CanvasDrawTextEx(Canvas* canvas, int16_t x, int16_t y, sFONT sfont, 
 #endif
 }
 
+/**
+ * @brief : void WouoUI_CanvasDrawSlideStrEx(SlideStr* ss, int16_t y, sFONT sfont, cFONT cfont)
+ * @param : 绘制并更新滑动字符串状态（支持中英混排宽度计算）
+ * @attention : 会根据 slide_mode 更新 str_start_x / slide_enable / slide_is_finish
+ */
 void WouoUI_CanvasDrawSlideStrEx(SlideStr* ss, int16_t y, sFONT sfont, cFONT cfont) {
     uint16_t str_width = 0;
     WouoUI_CanvasDrawTextEx(&(ss->canvas), ss->str_start_x, y, sfont, cfont, (uint8_t*)(ss->str));
@@ -269,9 +291,9 @@ void WouoUI_CanvasDrawSlideStrEx(SlideStr* ss, int16_t y, sFONT sfont, cFONT cfo
 }
 
 /**
- * @brief : Resets the sliding string parameters, 可用于页面切换时使ss重新等待enable滚动
- * @param : ss - Pointer to the SlideStr structure to reset.
- * @return : None
+ * @brief : 重置滑动字符串状态参数
+ * @param : ss 待重置的 SlideStr 对象
+ * @attention : 页面切换后可调用，恢复初始等待滚动状态
  */
 void WouoUI_CanvasSlideStrReset(SlideStr* ss) {
     ss->str_start_x = 0;
@@ -281,6 +303,12 @@ void WouoUI_CanvasSlideStrReset(SlideStr* ss) {
 }
 
 #if (WOUOUI_SUPPORT_CHINESE_SYMBOL)
+/**
+ * @brief : 在中文符号索引表中查找对应点阵
+ * @param : symbol 输入/输出符号对象（包含编码与查找结果）
+ * @param : cfont 中文字体对象
+ * @attention : 未命中时 symbol->matrix 为空，并记录告警日志
+ */
 WOUO_WEAK void WouoUI_FindCNSymbol(CH_CN* symbol, cFONT cfont) {
     uint16_t left = 0, right = 0;
     uint16_t mid = 0;
@@ -333,8 +361,26 @@ WOUO_WEAK void WouoUI_FindCNSymbol(CH_CN* symbol, cFONT cfont) {
 }
 
 #    if (WOUOUI_SUPPORT_CNSYMBOL_UNICODE)
+/**
+ * @brief : 绘制单个中文符号（Unicode 三字节编码）
+ * @param : canvas 指定窗口
+ * @param : x 符号起始 x 坐标
+ * @param : y 符号起始 y 坐标
+ * @param : cfont 中文字体
+ * @param : c 符号编码（UTF-8 三字节）
+ * @attention : 符号未找到时可按配置绘制占位框
+ */
 void WouoUI_CanvasDrawCNSymbol(Canvas* canvas, int16_t x, int16_t y, cFONT cfont, char c[3]) {
 #    elif (WOUOUI_SUPPORT_CNSYMBOL_GB2312)
+/**
+ * @brief : 绘制单个中文符号（GB2312 双字节编码）
+ * @param : canvas 指定窗口
+ * @param : x 符号起始 x 坐标
+ * @param : y 符号起始 y 坐标
+ * @param : cfont 中文字体
+ * @param : c 符号编码（GB2312 双字节）
+ * @attention : 符号未找到时可按配置绘制占位框
+ */
 void WouoUI_CanvasDrawCNSymbol(Canvas* canvas, int16_t x, int16_t y, cFONT cfont, char c[2]) {
 #    endif
     CH_CN symbol;
@@ -359,6 +405,12 @@ void WouoUI_CanvasDrawCNSymbol(Canvas* canvas, int16_t x, int16_t y, cFONT cfont
             break; // 已经超出边框没必要再写了
     }
 }
+/**
+ * @brief : void WouoUI_CanvasDrawStrEx(Canvas* canvas, int16_t x, int16_t y, sFONT sfont,
+ * cFONT cfont, uint8_t* str)
+ * @param : 中英混排字符串绘制；ASCII 使用 sfont，中文符号使用 cfont
+ * @attention : 对非法/不完整多字节序列会跳过 1 字节以避免死循环
+ */
 void WouoUI_CanvasDrawStrEx(Canvas* canvas, int16_t x, int16_t y, sFONT sfont, cFONT cfont,
                             uint8_t* str) {
     int16_t cur_x = x;
@@ -413,9 +465,10 @@ void WouoUI_CanvasDrawStrEx(Canvas* canvas, int16_t x, int16_t y, sFONT sfont, c
 #endif
 
 /**
- * @brief : WouoUI_CanvasDrawStrWithNewline(Canvas *canvas, int16_t x, int16_t y, sFONT font,
- * uint8_t *str, uint8_t lineSpacing)
- * @param : win指定窗口，x，y相对于窗口的坐标，str 字符串,lineSpacing 行间距
+ * @brief : void WouoUI_CanvasDrawStrWithNewlineEx(Canvas* canvas, int16_t x, int16_t y,
+ * sFONT sfont, cFONT cfont, uint8_t* str, uint8_t lineSpacing)
+ * @param : 按显式换行符绘制文本；支持中英混排；lineSpacing 为行间距
+ * @attention : 行高按当前行实际最大字高（sfont/cfont）计算
  */
 void WouoUI_CanvasDrawStrWithNewlineEx(Canvas* canvas, int16_t x, int16_t y, sFONT sfont,
                                        cFONT cfont, uint8_t* str, uint8_t lineSpacing) {
@@ -479,6 +532,12 @@ void WouoUI_CanvasDrawStrWithNewlineEx(Canvas* canvas, int16_t x, int16_t y, sFO
     }
 }
 
+/**
+ * @brief : void WouoUI_CanvasDrawStrAutoNewlineEx(Canvas* canvas, int16_t x, int16_t y,
+ * sFONT sfont, cFONT cfont, uint8_t* str)
+ * @param : 自动按画布宽度换行绘制文本；支持中英混排
+ * @attention : 自动换行时同样按每行最大字高推进 y 坐标
+ */
 void WouoUI_CanvasDrawStrAutoNewlineEx(Canvas* canvas, int16_t x, int16_t y, sFONT sfont,
                                        cFONT cfont, uint8_t* str) {
     int16_t cur_x = x, cur_y = y;
@@ -569,7 +628,7 @@ void WouoUI_CanvasDrawStrAutoNewlineEx(Canvas* canvas, int16_t x, int16_t y, sFO
 
 /**
  * @brief : void WouoUI_CanvasDrawLine_V(Canvas *canvas,int16_t x, int16_t y_start, int16_t y_end)
- * @param : 往指定窗口中画线，注意，y_end 必须大于y_start
+ * @param : 往指定窗口中画竖线；若 y_start > y_end 会自动交换
  * @attention : None
  */
 void WouoUI_CanvasDrawLine_V(Canvas* canvas, int16_t x, int16_t y_start, int16_t y_end) {
@@ -604,7 +663,7 @@ void WouoUI_CanvasDrawLine_V(Canvas* canvas, int16_t x, int16_t y_start, int16_t
 /**
  * @brief : void WouoUI_CanvasDrawDashedLine_V(Canvas *canvas,int16_t x, int16_t y_start, int16_t
  * y_end)
- * @param : 往指定窗口中画虚线，注意，y_end 必须大于y_start
+ * @param : 往指定窗口中画竖向虚线；若 y_start > y_end 会自动交换
  * @attention : None
  */
 void WouoUI_CanvasDrawDashedLine_V(Canvas* canvas, int16_t x, int16_t y_start, int16_t y_end,
@@ -647,7 +706,8 @@ void WouoUI_CanvasDrawDashedLine_V(Canvas* canvas, int16_t x, int16_t y_start, i
 
 /**
  * @brief : void WouoUI_CanvasDrawLine_H(Canvas * canvas, int16_t x_start, int16_t x_end, int16_t y)
- * @param : 注意x_end > x_start
+ * @param : 画横线；若 x_start > x_end 会自动交换
+ * @attention : 超出画布范围会裁剪或直接返回
  */
 void WouoUI_CanvasDrawLine_H(Canvas* canvas, int16_t x_start, int16_t x_end, int16_t y) {
     if (x_start < 0)
@@ -672,7 +732,8 @@ void WouoUI_CanvasDrawLine_H(Canvas* canvas, int16_t x_start, int16_t x_end, int
 /**
  * @brief : void WouoUI_GraphDrawDashedLine_H(Canvas * canvas, int16_t x_start, int16_t x_end,
  * int16_t y)
- * @param : 注意x_end > x_start
+ * @param : 画横向虚线；若 x_start > x_end 会自动交换
+ * @attention : 虚线位图由 DashedStyle 与 Unit_Length 控制
  */
 void WouoUI_GraphDrawDashedLine_H(Canvas* canvas, int16_t x_start, int16_t x_end, int16_t y,
                                   uint8_t DashedStyle, uint8_t Unit_Length) {
@@ -746,14 +807,14 @@ void WouoUI_CanvasDrawRBoxEmpty(Canvas* canvas, int16_t x_start, int16_t y_start
 }
 
 /**
- * @brief 画矩形的四个直角
- *
- * @param canvas 绘制的窗口
- * @param x_start 矩形左上角x坐标
- * @param y_start 矩形左上角y坐标
- * @param width 矩形宽度
- * @param height 矩形高度
- * @param r 直角长度
+ * @brief : 绘制矩形四角直角标记
+ * @param : canvas 绘制窗口
+ * @param : x_start 矩形左上角 x 坐标
+ * @param : y_start 矩形左上角 y 坐标
+ * @param : width 矩形宽度
+ * @param : height 矩形高度
+ * @param : r 直角长度
+ * @attention : r 会被限制在可用最大范围内
  */
 void WouoUI_CanvasDrawBoxRightAngle(Canvas* canvas, int16_t x_start, int16_t y_start, int16_t width,
                                     int16_t height, uint8_t r) {
@@ -777,7 +838,8 @@ void WouoUI_CanvasDrawBoxRightAngle(Canvas* canvas, int16_t x_start, int16_t y_s
 /**
  * @brief : void WouoUI_CanvasDrawBMP(Canvas * canvas, int16_t x, int16_t y, int16_t width, int16_t
  * height,const uint8_t * BMP, uint8_t color)
- * @param : heigh must be a total times of 8, the color is convenient for draw inverse-color BMP
+ * @param : 在画布指定区域绘制位图；color=1 正常绘制，其他值按位取反绘制
+ * @attention : 当 height 不是 8 的倍数时，最后一页按剩余位数裁剪
  */
 void WouoUI_CanvasDrawBMP(Canvas* canvas, int16_t x, int16_t y, int16_t width, int16_t height,
                           const uint8_t* BMP, uint8_t color) {
@@ -812,7 +874,8 @@ void WouoUI_CanvasDrawBMP(Canvas* canvas, int16_t x, int16_t y, int16_t width, i
 
 /**
  * @brief : void WouoUI_CanvasDrawPoint(Canvas * canvas, int16_t x, int16_t y)
- * @param : //画点函数尚未测试
+ * @param : 在窗口内绘制单个像素点
+ * @attention : 点写入最终由 WouoUI_CanvasWriteByte 进行边界处理
  */
 void WouoUI_CanvasDrawPoint(Canvas* canvas, int16_t x, int16_t y) {
     WouoUI_CanvasWriteByte(canvas, x, y, 0x01);
@@ -822,7 +885,7 @@ void WouoUI_CanvasDrawPoint(Canvas* canvas, int16_t x, int16_t y) {
  * @brief : void WouoUI_CanvasDrawLine(Canvas* canvas,int16_t x1, int16_t y1, int16_t x2, int16_t
  * y2)
  * @param : (x1,y1)为起点，(x2,y2)为终点
- * @attention : 使用Bresenham算法进行画直线,注意，x1 != x2
+ * @attention : 使用 Bresenham 算法；当前实现在 x1==x2 时直接返回（竖线请用 DrawLine_V）
  * @author : Sheep
  * @date : 23/10/31
  */
@@ -895,8 +958,9 @@ void WouoUI_CanvasDrawLine(Canvas* canvas, int16_t x1, int16_t y1, int16_t x2, i
 
 /**
  * @brief : uint16_t WouoUI_GetStrWidthEx(const char * str, sFONT sfont, cFONT cfont)
- * @param : 得到字符串的宽度
- * @attention : len
+ * @param : 计算字符串显示宽度（ASCII 用 sfont，中文用 cfont）
+ * @attention : 不支持/不完整多字节序列按 1 个 ASCII 宽度计
+ * @return : 字符串绘制宽度（像素）
  */
 uint16_t WouoUI_GetStrWidthEx(const char* str, sFONT sfont, cFONT cfont) {
     uint16_t width = 0;
@@ -933,8 +997,9 @@ uint16_t WouoUI_GetStrWidthEx(const char* str, sFONT sfont, cFONT cfont) {
 
 /**
  * @brief : uint16_t WouoUI_GetStrHeightEx(const char * str, sFONT sfont, cFONT cfont)
- * @param : 得到字符串的高度
- * @attention : len
+ * @param : 计算包含显式换行符的字符串显示高度
+ * @attention : 每行高度取该行中实际最大字高，并叠加行间距
+ * @return : 字符串显示高度（像素）
  */
 uint16_t WouoUI_GetStrHeightEx(const char* str, sFONT sfont, cFONT cfont) {
     uint8_t lines = 1;
@@ -981,6 +1046,13 @@ uint16_t WouoUI_GetStrHeightEx(const char* str, sFONT sfont, cFONT cfont) {
     return total_h + (lines - 1) * WOUOUI_STR_LINE_SPACING;
 }
 
+/**
+ * @brief : uint16_t WouoUI_GetStrHeightAutoNewLineEx(int16_t canvas_w, const char* str,
+ * sFONT sfont, cFONT cfont)
+ * @param : 计算自动换行后的字符串显示高度（按 canvas_w 折行）
+ * @attention : 同时支持 ASCII/中文宽高；canvas_w <= 0 或 str == NULL 返回 0
+ * @return : 自动换行后的总高度（像素）
+ */
 uint16_t WouoUI_GetStrHeightAutoNewLineEx(int16_t canvas_w, const char* str, sFONT sfont,
                                           cFONT cfont) {
     uint16_t total_h = 0;
