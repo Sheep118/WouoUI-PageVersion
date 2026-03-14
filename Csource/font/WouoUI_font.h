@@ -31,10 +31,13 @@ extern const sFONT Font_12_24;
 #define GET_FNOT_W(fnot) (fnot.Width)
 
 // 有关字体的设置
-#define WOUOUI_SUPPORT_CHINESE_SYMBOL 1   // 是否支持中文符号显示
-#define WOUOUI_SUPPORT_CNSYMBOL_UNICODE 1 // 是否支持UNICODE编码输入
-#define WOUOUI_SUPPORT_CNSYMBOL_GB2312 1  // 是否支持GB2312编码输入
+#define WOUOUI_SUPPORT_CHINESE_SYMBOL 1 // 是否支持中文符号显示
+
 #if (WOUOUI_SUPPORT_CHINESE_SYMBOL)
+
+#    define WOUOUI_SUPPORT_CNSYMBOL_UNICODE 1 // 是否支持UNICODE编码输入
+#    define WOUOUI_SUPPORT_CNSYMBOL_GB2312 1  // 是否支持GB2312编码输入
+#    define WOUOUI_CN_FALLBACK_SHOW 1         // 中文字符未命中时是否显示占位框（动态空心矩形）
 
 #    if (WOUOUI_SUPPORT_CNSYMBOL_UNICODE)
 typedef char CNCodeIndexType[3]; // 汉字内码索引（UTF-8 3字节，GB2312 2字节）

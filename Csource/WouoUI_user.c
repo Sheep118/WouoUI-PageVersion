@@ -25,7 +25,7 @@ ListPage about_version_page;
 // 定义部分页面选项
 //********main页面的选项
 Option mian_option_array[MAIN_PAGE_NUM] = {
-    {.text = (char*)"! WouoUI"},
+    {.text = (char*)"! WouoUI-Page版"},
     {.text = (char*)"+ Setting"},
     {.text = (char*)"+ Wave你好啊"},
     {

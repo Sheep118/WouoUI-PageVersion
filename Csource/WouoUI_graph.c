@@ -205,7 +205,7 @@ void WouoUI_CanvasDrawStr(Canvas* canvas, int16_t x, int16_t y, sFONT font, uint
 
 void WouoUI_CanvasDrawSlideStr(SlideStr* ss, int16_t y, sFONT font) {
     // WouoUI_CanvasDrawStr(&(ss->canvas), ss->str_start_x, y, font, (uint8_t*)(ss->str));
-    WouoUI_CanvasDrawMixStr(&(ss->canvas), ss->str_start_x, y, font, ZLabsBitmap_12px_CN_24x24_CN_t,
+    WouoUI_CanvasDrawMixStr(&(ss->canvas), ss->str_start_x, y, font, ZLabsBitmap_12px_CN_13x12_CN_t,
                             (uint8_t*)(ss->str));
     if (ss->canvas.w >= WouoUI_GetStrWidth(ss->str, font)) {
         ss->slide_enable = false;   // 失能滚动
@@ -257,13 +257,19 @@ WOUO_WEAK void WouoUI_FindCNSymbol(CH_CN* symbol, cFONT cfont) {
     uint16_t symbol_bytes = 0;
     int cmp = 0;
 
-    if (symbol == NULL || cfont.index_table == NULL || cfont.table == NULL || cfont.count == 0) {
+    if (symbol == NULL) {
         return;
     }
 
     symbol->width = 0;
     symbol->height = 0;
     symbol->matrix = NULL;
+
+    if (cfont.index_table == NULL || cfont.table == NULL || cfont.count == 0 || cfont.Width == 0 ||
+        cfont.Height == 0) {
+        WOUOUI_LOG_W("cFONT invalid (table/index/count/size not set)");
+        return;
+    }
 
     right = (uint16_t)(cfont.count - 1);
 
@@ -286,6 +292,14 @@ WOUO_WEAK void WouoUI_FindCNSymbol(CH_CN* symbol, cFONT cfont) {
             left = (uint16_t)(mid + 1);
         }
     }
+    // 二分查找结束仍未命中，打印未找到的编码字节
+#    if (WOUOUI_SUPPORT_CNSYMBOL_UNICODE)
+    WOUOUI_LOG_W("CN symbol not found: 0x%02X 0x%02X 0x%02X", (uint8_t)symbol->index[0],
+                 (uint8_t)symbol->index[1], (uint8_t)symbol->index[2]);
+#    elif (WOUOUI_SUPPORT_CNSYMBOL_GB2312)
+    WOUOUI_LOG_W("CN symbol not found: 0x%02X 0x%02X", (uint8_t)symbol->index[0],
+                 (uint8_t)symbol->index[1]);
+#    endif
 }
 
 #    if (WOUOUI_SUPPORT_CNSYMBOL_UNICODE)
@@ -297,6 +311,14 @@ void WouoUI_CanvasDrawCNSymbol(Canvas* canvas, int16_t x, int16_t y, cFONT cfont
     memcpy(symbol.index, c, sizeof(symbol.index));
     WouoUI_FindCNSymbol(&symbol,
                         cfont); // 根据输入的编码在符号表中找到对应的点阵数据，填充symbol.matrix
+    if (symbol.matrix == NULL || symbol.width == 0 || symbol.height == 0) {
+#    if WOUOUI_CN_FALLBACK_SHOW
+        if (cfont.Width > 0 && cfont.Height > 0)
+            WouoUI_CanvasDrawRBoxEmpty(canvas, x, y, (int16_t)cfont.Width, (int16_t)cfont.Height,
+                                       1);
+#    endif
+        return;
+    }
     for (uint8_t i = 0; i < symbol.width; i++) {
         for (uint8_t j = 0; j < (symbol.height + 7) / 8; j++) {
             WouoUI_CanvasWriteByte(canvas, x, y + j * 8,
