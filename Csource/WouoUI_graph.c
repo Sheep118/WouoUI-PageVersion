@@ -3,6 +3,14 @@
 static Screen cur_screen; // 当前操作的屏幕对象，是个指针集合(所以没有必要使用指针)
 static Pen* p_cur_pen;    // 当前画笔的指针
 
+static inline bool WouoUI_IsASCIIPrintableByte(uint8_t c) {
+    return (c >= 0x20 && c <= 0x7E);
+}
+
+static void WouoUI_LogNonASCIIByte(uint8_t c) {
+    WOUOUI_LOG_W("Found non-ASCII/non-printable byte in string draw: 0x%02X\n", c);
+}
+
 void WouoUI_GraphSetSendBuffFun(FunSendScreenBuff fun) {
     cur_screen.p_fun_send_buff = fun;
 }
@@ -195,6 +203,15 @@ int16_t WouoUI_CanvasDrawASCII(Canvas* canvas, int16_t x, int16_t y, sFONT font,
 void WouoUI_CanvasDrawStr(Canvas* canvas, int16_t x, int16_t y, sFONT font, uint8_t* str) {
     int16_t cur_x = x, cur_y = y;
     while (*str != '\0') {
+        if (!WouoUI_IsASCIIPrintableByte(*str)) {
+            WouoUI_LogNonASCIIByte(*str);
+            WouoUI_CanvasDrawRBoxEmpty(canvas, cur_x, cur_y, font.Width, font.Height, 1);
+            cur_x += font.Width;
+            str++;
+            if (cur_x > canvas->w || cur_y > canvas->h)
+                break;
+            continue;
+        }
         WouoUI_CanvasDrawASCII(canvas, cur_x, cur_y, font, *str);
         cur_x += font.Width;
         str++;
@@ -203,11 +220,21 @@ void WouoUI_CanvasDrawStr(Canvas* canvas, int16_t x, int16_t y, sFONT font, uint
     }
 }
 
-void WouoUI_CanvasDrawSlideStr(SlideStr* ss, int16_t y, sFONT font) {
-    // WouoUI_CanvasDrawStr(&(ss->canvas), ss->str_start_x, y, font, (uint8_t*)(ss->str));
-    WouoUI_CanvasDrawMixStr(&(ss->canvas), ss->str_start_x, y, font, ZLabsBitmap_12px_CN_13x12_CN_t,
-                            (uint8_t*)(ss->str));
-    if (ss->canvas.w >= WouoUI_GetStrWidth(ss->str, font)) {
+void WouoUI_CanvasDrawTextEx(Canvas* canvas, int16_t x, int16_t y, sFONT sfont, cFONT cfont,
+                             uint8_t* str) {
+#if (WOUOUI_SUPPORT_CHINESE_SYMBOL)
+    WouoUI_CanvasDrawStrEx(canvas, x, y, sfont, cfont, str);
+#else
+    UNUSED_PARAMETER(cfont);
+    WouoUI_CanvasDrawStr(canvas, x, y, sfont, str);
+#endif
+}
+
+void WouoUI_CanvasDrawSlideStrEx(SlideStr* ss, int16_t y, sFONT sfont, cFONT cfont) {
+    uint16_t str_width = 0;
+    WouoUI_CanvasDrawTextEx(&(ss->canvas), ss->str_start_x, y, sfont, cfont, (uint8_t*)(ss->str));
+    str_width = WouoUI_GetStrWidthEx(ss->str, sfont, cfont);
+    if (ss->canvas.w >= str_width) {
         ss->slide_enable = false;   // 失能滚动
         ss->slide_is_finish = true; // 不需要滚动时，单次滚动标记完成
     }
@@ -217,18 +244,21 @@ void WouoUI_CanvasDrawSlideStr(SlideStr* ss, int16_t y, sFONT font) {
             ss->str_start_x -= ss->step;
             switch (ss->slide_mode) {
             case SSM_HEAD_RESTART:
-                if (ss->str_start_x + WouoUI_GetStrWidth(ss->str, font) == 0) // 到头了
+                if ((int32_t)ss->str_start_x + str_width <= 0) // 字符串完全滑出左边缘，重新开始
                     ss->str_start_x = 0;
                 break;
             case SSM_TIAL_RESTART:
-                if (ss->str_start_x + WouoUI_GetStrWidth(ss->str, font) == ss->canvas.w)
+                if ((int32_t)ss->str_start_x + str_width <=
+                    ss->canvas.w) // 尾部到达右边缘，重新开始
                     ss->str_start_x = 0;
                 break;
             case SSM_TAIL_STOP:
-                if (ss->str_start_x + WouoUI_GetStrWidth(ss->str, font) == ss->canvas.w) {
-                    ss->slide_is_finish = true; // 单次滚动结束
-                    ss->slide_enable = false;   // 停止移动
+                if ((int32_t)ss->str_start_x + str_width <= ss->canvas.w) {
+                    ss->str_start_x = ss->canvas.w - (int16_t)str_width; // 对齐到尾部（过冲修正）
+                    ss->slide_is_finish = true;                          // 单次滚动结束
+                    ss->slide_enable = false;                            // 停止移动
                 }
+                break;
             default:
                 break;
             }
@@ -329,8 +359,8 @@ void WouoUI_CanvasDrawCNSymbol(Canvas* canvas, int16_t x, int16_t y, cFONT cfont
             break; // 已经超出边框没必要再写了
     }
 }
-void WouoUI_CanvasDrawMixStr(Canvas* canvas, int16_t x, int16_t y, sFONT sfont, cFONT cfont,
-                             uint8_t* str) {
+void WouoUI_CanvasDrawStrEx(Canvas* canvas, int16_t x, int16_t y, sFONT sfont, cFONT cfont,
+                            uint8_t* str) {
     int16_t cur_x = x;
     int16_t cur_y = y;
     if (str == NULL)
@@ -387,45 +417,152 @@ void WouoUI_CanvasDrawMixStr(Canvas* canvas, int16_t x, int16_t y, sFONT sfont, 
  * uint8_t *str, uint8_t lineSpacing)
  * @param : win指定窗口，x，y相对于窗口的坐标，str 字符串,lineSpacing 行间距
  */
-void WouoUI_CanvasDrawStrWithNewline(Canvas* canvas, int16_t x, int16_t y, sFONT font, uint8_t* str,
-                                     uint8_t lineSpacing) {
+void WouoUI_CanvasDrawStrWithNewlineEx(Canvas* canvas, int16_t x, int16_t y, sFONT sfont,
+                                       cFONT cfont, uint8_t* str, uint8_t lineSpacing) {
     int16_t cur_x = x, cur_y = y;
+    uint16_t line_max_h = sfont.Height;
+    if (str == NULL)
+        return;
+
     while (*str != '\0') {
         if (*str == '\n') {
             str++;
             cur_x = x;
-            cur_y += (font.Height + lineSpacing);
+            cur_y += (line_max_h + lineSpacing);
+            line_max_h = sfont.Height;
+            continue;
         }
-        WouoUI_CanvasDrawASCII(canvas, cur_x, cur_y, font, *str);
-        cur_x += font.Width;
-        str++;
+        if (*str == '\r') {
+            str++;
+            continue;
+        }
+
+#if (WOUOUI_SUPPORT_CHINESE_SYMBOL)
+#    if (WOUOUI_SUPPORT_CNSYMBOL_UNICODE)
+        if (*str >= 0x80 && ((str[0] & 0xF0) == 0xE0) && str[1] != '\0' && str[2] != '\0') {
+            char c[3] = {(char)str[0], (char)str[1], (char)str[2]};
+            WouoUI_CanvasDrawCNSymbol(canvas, cur_x, cur_y, cfont, c);
+            cur_x += cfont.Width;
+            line_max_h = MAX(line_max_h, cfont.Height);
+            str += 3;
+        } else
+#    elif (WOUOUI_SUPPORT_CNSYMBOL_GB2312)
+        if (*str >= 0x80 && str[1] != '\0') {
+            char c[2] = {(char)str[0], (char)str[1]};
+            WouoUI_CanvasDrawCNSymbol(canvas, cur_x, cur_y, cfont, c);
+            cur_x += cfont.Width;
+            line_max_h = MAX(line_max_h, cfont.Height);
+            str += 2;
+        } else
+#    endif
+#endif
+        {
+#if !(WOUOUI_SUPPORT_CHINESE_SYMBOL)
+            if (!WouoUI_IsASCIIPrintableByte(*str) && *str != '\n' && *str != '\r') {
+                WouoUI_LogNonASCIIByte(*str);
+                WouoUI_CanvasDrawRBoxEmpty(canvas, cur_x, cur_y, sfont.Width, sfont.Height, 1);
+                cur_x += sfont.Width;
+                line_max_h = MAX(line_max_h, sfont.Height);
+                str++;
+            } else
+#endif
+            {
+                WouoUI_CanvasDrawASCII(canvas, cur_x, cur_y, sfont, *str);
+                cur_x += sfont.Width;
+                line_max_h = MAX(line_max_h, sfont.Height);
+                str++;
+            }
+        }
+
         if (cur_x > canvas->w || cur_y > canvas->h)
             continue; // 已经到边了没必要再写了
     }
 }
 
-void WouoUI_CanvasDrawStrAutoNewline(Canvas* canvas, int16_t x, int16_t y, sFONT font,
-                                     uint8_t* str) {
+void WouoUI_CanvasDrawStrAutoNewlineEx(Canvas* canvas, int16_t x, int16_t y, sFONT sfont,
+                                       cFONT cfont, uint8_t* str) {
     int16_t cur_x = x, cur_y = y;
+    uint16_t line_max_h = sfont.Height;
+    uint16_t glyph_w = 0;
+    uint16_t glyph_h = 0;
+
+    if (str == NULL)
+        return;
+
     while (*str != '\0') {
-        // Handle explicit newline
         if (*str == '\n') {
             str++;
             cur_x = x;
-            cur_y += (font.Height + WOUOUI_STR_LINE_SPACING);
+            cur_y += (line_max_h + WOUOUI_STR_LINE_SPACING);
+            line_max_h = sfont.Height;
             continue;
         }
-        // Check if next character would exceed canvas width
-        if (cur_x + font.Width > canvas->w) {
-            cur_x = x;
-            cur_y += (font.Height + WOUOUI_STR_LINE_SPACING);
+        if (*str == '\r') {
+            str++;
+            continue;
         }
-        // Stop if we've exceeded canvas height
+
+        glyph_w = sfont.Width;
+        glyph_h = sfont.Height;
+#if (WOUOUI_SUPPORT_CHINESE_SYMBOL)
+#    if (WOUOUI_SUPPORT_CNSYMBOL_UNICODE)
+        if (*str >= 0x80 && ((str[0] & 0xF0) == 0xE0) && str[1] != '\0' && str[2] != '\0') {
+            glyph_w = cfont.Width;
+            glyph_h = cfont.Height;
+        }
+#    elif (WOUOUI_SUPPORT_CNSYMBOL_GB2312)
+        if (*str >= 0x80 && str[1] != '\0') {
+            glyph_w = cfont.Width;
+            glyph_h = cfont.Height;
+        }
+#    endif
+#endif
+
+        if (cur_x + glyph_w > canvas->w) {
+            cur_x = x;
+            cur_y += (line_max_h + WOUOUI_STR_LINE_SPACING);
+            line_max_h = sfont.Height;
+        }
+
         if (cur_y > canvas->h)
             break;
-        // Draw character and advance
-        WouoUI_CanvasDrawASCII(canvas, cur_x, cur_y, font, *str);
-        cur_x += font.Width;
+
+#if (WOUOUI_SUPPORT_CHINESE_SYMBOL)
+#    if (WOUOUI_SUPPORT_CNSYMBOL_UNICODE)
+        if (*str >= 0x80 && ((str[0] & 0xF0) == 0xE0) && str[1] != '\0' && str[2] != '\0') {
+            char c[3] = {(char)str[0], (char)str[1], (char)str[2]};
+            WouoUI_CanvasDrawCNSymbol(canvas, cur_x, cur_y, cfont, c);
+            cur_x += cfont.Width;
+            line_max_h = MAX(line_max_h, cfont.Height);
+            str += 3;
+            continue;
+        }
+#    elif (WOUOUI_SUPPORT_CNSYMBOL_GB2312)
+        if (*str >= 0x80 && str[1] != '\0') {
+            char c[2] = {(char)str[0], (char)str[1]};
+            WouoUI_CanvasDrawCNSymbol(canvas, cur_x, cur_y, cfont, c);
+            cur_x += cfont.Width;
+            line_max_h = MAX(line_max_h, cfont.Height);
+            str += 2;
+            continue;
+        }
+#    endif
+#endif
+
+#if !(WOUOUI_SUPPORT_CHINESE_SYMBOL)
+        if (!WouoUI_IsASCIIPrintableByte(*str) && *str != '\n' && *str != '\r') {
+            WouoUI_LogNonASCIIByte(*str);
+            WouoUI_CanvasDrawRBoxEmpty(canvas, cur_x, cur_y, sfont.Width, sfont.Height, 1);
+            cur_x += sfont.Width;
+            line_max_h = MAX(line_max_h, sfont.Height);
+            str++;
+            continue;
+        }
+#endif
+
+        WouoUI_CanvasDrawASCII(canvas, cur_x, cur_y, sfont, *str);
+        cur_x += sfont.Width;
+        line_max_h = MAX(line_max_h, sfont.Height);
         str++;
     }
 }
@@ -757,43 +894,147 @@ void WouoUI_CanvasDrawLine(Canvas* canvas, int16_t x1, int16_t y1, int16_t x2, i
 }
 
 /**
- * @brief : uint16_t WouoUI_GetStrWidth(const char * str, sFONT font)
+ * @brief : uint16_t WouoUI_GetStrWidthEx(const char * str, sFONT sfont, cFONT cfont)
  * @param : 得到字符串的宽度
  * @attention : len
  */
-uint16_t WouoUI_GetStrWidth(const char* str, sFONT font) {
-    return strlen(str) * font.Width;
+uint16_t WouoUI_GetStrWidthEx(const char* str, sFONT sfont, cFONT cfont) {
+    uint16_t width = 0;
+    const uint8_t* p = (const uint8_t*)str;
+    if (str == NULL)
+        return 0;
+
+    while (*p != '\0') {
+        if (*p < 0x80) {
+            width += sfont.Width;
+            p++;
+            continue;
+        }
+#if (WOUOUI_SUPPORT_CHINESE_SYMBOL)
+#    if (WOUOUI_SUPPORT_CNSYMBOL_UNICODE)
+        if (((p[0] & 0xF0) == 0xE0) && p[1] != '\0' && p[2] != '\0') {
+            width += cfont.Width;
+            p += 3;
+            continue;
+        }
+#    elif (WOUOUI_SUPPORT_CNSYMBOL_GB2312)
+        if (p[1] != '\0') {
+            width += cfont.Width;
+            p += 2;
+            continue;
+        }
+#    endif
+#endif
+        width += sfont.Width;
+        p++;
+    }
+    return width;
 }
 
 /**
- * @brief : uint16_t WouoUI_GetStrHeight(const char * str, sFONT font)
+ * @brief : uint16_t WouoUI_GetStrHeightEx(const char * str, sFONT sfont, cFONT cfont)
  * @param : 得到字符串的高度
  * @attention : len
  */
-uint16_t WouoUI_GetStrHeight(const char* str, sFONT font) {
+uint16_t WouoUI_GetStrHeightEx(const char* str, sFONT sfont, cFONT cfont) {
     uint8_t lines = 1;
+    uint16_t line_h = sfont.Height;
+    uint16_t total_h = 0;
+    const uint8_t* p = (const uint8_t*)str;
+
     if (str == NULL)
         return 0;
-    while (*str != '\0') {
-        if (*str == '\n')
+
+    while (*p != '\0') {
+        if (*p == '\n') {
+            total_h += line_h;
             lines++;
-        str++;
+            line_h = sfont.Height;
+            p++;
+            continue;
+        }
+        if (*p < 0x80) {
+            line_h = MAX(line_h, sfont.Height);
+            p++;
+            continue;
+        }
+#if (WOUOUI_SUPPORT_CHINESE_SYMBOL)
+#    if (WOUOUI_SUPPORT_CNSYMBOL_UNICODE)
+        if (((p[0] & 0xF0) == 0xE0) && p[1] != '\0' && p[2] != '\0') {
+            line_h = MAX(line_h, cfont.Height);
+            p += 3;
+            continue;
+        }
+#    elif (WOUOUI_SUPPORT_CNSYMBOL_GB2312)
+        if (p[1] != '\0') {
+            line_h = MAX(line_h, cfont.Height);
+            p += 2;
+            continue;
+        }
+#    endif
+#endif
+        line_h = MAX(line_h, sfont.Height);
+        p++;
     }
-    return lines * font.Height + (lines - 1) * WOUOUI_STR_LINE_SPACING;
+
+    total_h += line_h;
+    return total_h + (lines - 1) * WOUOUI_STR_LINE_SPACING;
 }
 
-uint16_t WouoUI_GetStrHeightAutoNewLine(int16_t canvas_w, const char* str, sFONT font) {
-    uint8_t lines = 1;
-    uint16_t x_in_line = 0;
-    if (str == NULL)
+uint16_t WouoUI_GetStrHeightAutoNewLineEx(int16_t canvas_w, const char* str, sFONT sfont,
+                                          cFONT cfont) {
+    uint16_t total_h = 0;
+    uint16_t line_w = 0;
+    uint16_t line_h = sfont.Height;
+    uint16_t glyph_w = 0;
+    uint16_t glyph_h = 0;
+    const uint8_t* p = (const uint8_t*)str;
+
+    if (str == NULL || canvas_w <= 0)
         return 0;
-    while (*str != '\0') {
-        x_in_line += font.Width;
-        if (x_in_line >= canvas_w || *str == '\n') {
-            lines++;
-            x_in_line = 0;
+
+    while (*p != '\0') {
+        if (*p == '\n') {
+            total_h += (line_h + WOUOUI_STR_LINE_SPACING);
+            line_w = 0;
+            line_h = sfont.Height;
+            p++;
+            continue;
         }
-        str++;
+
+        glyph_w = sfont.Width;
+        glyph_h = sfont.Height;
+        if (*p < 0x80) {
+            p++;
+        }
+#if (WOUOUI_SUPPORT_CHINESE_SYMBOL)
+#    if (WOUOUI_SUPPORT_CNSYMBOL_UNICODE)
+        else if (((p[0] & 0xF0) == 0xE0) && p[1] != '\0' && p[2] != '\0') {
+            glyph_w = cfont.Width;
+            glyph_h = cfont.Height;
+            p += 3;
+        }
+#    elif (WOUOUI_SUPPORT_CNSYMBOL_GB2312)
+        else if (p[1] != '\0') {
+            glyph_w = cfont.Width;
+            glyph_h = cfont.Height;
+            p += 2;
+        }
+#    endif
+#endif
+        else {
+            p++;
+        }
+
+        if (line_w > 0 && (line_w + glyph_w) > canvas_w) {
+            total_h += (line_h + WOUOUI_STR_LINE_SPACING);
+            line_w = 0;
+            line_h = sfont.Height;
+        }
+
+        line_w += glyph_w;
+        line_h = MAX(line_h, glyph_h);
     }
-    return lines * font.Height + (lines - 1) * WOUOUI_STR_LINE_SPACING;
+
+    return total_h + line_h;
 }

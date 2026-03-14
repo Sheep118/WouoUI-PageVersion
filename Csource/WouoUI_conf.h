@@ -1,6 +1,11 @@
 #ifndef __WOUOUI_CONF_H__
 #define __WOUOUI_CONF_H__
 
+// 有三个问题
+// 2. 中文宏失能的时候，使用中文会直接乱码，而不是显示占位框
+// 3. 现在每个页面只要用中文字体就会默认使用中文字体最大高度(因为中文通常比英文高)，
+//    不论实际使用的页面中是否含有中文，到后面做上位机做代码生成才能解决。
+
 //---------------------与调试相关的参数
 #include "./font/WouoUI_font.h" // 字体头文件，同时包含一些字体的配置
 
@@ -25,25 +30,35 @@
 
 //------------------与title页面相关的默认参数
 #define DEFAULT_TILE_B_TITLE_FNOT ZLabsBitmap_12px_CN_9x15_t // 磁贴大标题字体
-#define DEFAULT_TILE_ICON_W 30                               // 磁贴图标宽度
-#define DEFAULT_TILE_ICON_H 30                               // 磁贴图标高度
-#define DEFAULT_TILE_ICON_IND_U 3                            // 磁贴指示器与磁贴的上边距
-#define DEFAULT_TILE_ICON_IND_D 3                            // 磁贴指示器与磁贴的下边距
-#define DEFAULT_TILE_ICON_IND_L 3                            // 磁贴指示器与磁贴的左边距
-#define DEFAULT_TILE_ICON_IND_R 3                            // 磁贴指示器与磁贴的右边距
-#define DEFAULT_TILE_ICON_IND_SL 5                           // 磁贴指示器边长SideLength
-#define DEFAULT_TILE_ICON_S 6                                // 磁贴图标间距(图标边和边的距离)
-#define DEFAULT_TILE_BAR_D 2                                 // 磁贴装饰条下边距
-#define DEFAULT_TILE_BAR_W 8                                 // 磁贴装饰条宽度
-#define DEFAULT_TILE_BAR_H 24                                // 磁贴装饰条高度
-#define DEFAULT_TILE_SLIDESTR_MODE 2                         // 磁贴标题文本的滚动模式
+#if (WOUOUI_SUPPORT_CHINESE_SYMBOL)
+#    define DEFAULT_TILE_B_TITLE_CFONT ZLabsBitmap_12px_CN_13x12_CN_t // 磁贴大标题中文字体
+#else
+#    define DEFAULT_TILE_B_TITLE_CFONT ((cFONT){0})
+#endif
+#define DEFAULT_TILE_ICON_W 30       // 磁贴图标宽度
+#define DEFAULT_TILE_ICON_H 30       // 磁贴图标高度
+#define DEFAULT_TILE_ICON_IND_U 3    // 磁贴指示器与磁贴的上边距
+#define DEFAULT_TILE_ICON_IND_D 3    // 磁贴指示器与磁贴的下边距
+#define DEFAULT_TILE_ICON_IND_L 3    // 磁贴指示器与磁贴的左边距
+#define DEFAULT_TILE_ICON_IND_R 3    // 磁贴指示器与磁贴的右边距
+#define DEFAULT_TILE_ICON_IND_SL 5   // 磁贴指示器边长SideLength
+#define DEFAULT_TILE_ICON_S 6        // 磁贴图标间距(图标边和边的距离)
+#define DEFAULT_TILE_BAR_D 2         // 磁贴装饰条下边距
+#define DEFAULT_TILE_BAR_W 8         // 磁贴装饰条宽度
+#define DEFAULT_TILE_BAR_H 24        // 磁贴装饰条高度
+#define DEFAULT_TILE_SLIDESTR_MODE 2 // 磁贴标题文本的滚动模式
 //------------------与list页面相关的默认参数
 #define DEFAULT_LIST_TEXT_FONT unifont_16_0_04_8x10_t // 列表文字的字体
-#define DEFAULT_LIST_TEXT_U_S 1                       // 列表文字的上边距
-#define DEFAULT_LIST_TEXT_D_S 1                       // 列表文字的下边距
-#define DEFAULT_LIST_TEXT_L_S 2                       // 列表文字的左边距
-#define DEFAULT_LIST_TEXT_R_S 3                       // 列表文字的右边距(到侧边进度条的距离)
-#define DEFAULT_LIST_IND_VAL_S 2                      // 指示器和val文本的间距
+#if (WOUOUI_SUPPORT_CHINESE_SYMBOL)
+#    define DEFAULT_LIST_TEXT_CFONT ZLabsBitmap_12px_CN_13x12_CN_t // 列表文字中文字体
+#else
+#    define DEFAULT_LIST_TEXT_CFONT ((cFONT){0})
+#endif
+#define DEFAULT_LIST_TEXT_U_S 1          // 列表文字的上边距
+#define DEFAULT_LIST_TEXT_D_S 1          // 列表文字的下边距
+#define DEFAULT_LIST_TEXT_L_S 2          // 列表文字的左边距
+#define DEFAULT_LIST_TEXT_R_S 3          // 列表文字的右边距(到侧边进度条的距离)
+#define DEFAULT_LIST_IND_VAL_S 2         // 指示器和val文本的间距
 #define DEFAULT_LIST_BAR_W 3             // 列表进度条宽度，需要是奇数，因为正中间有1像素宽度的线
 #define DEFAULT_LIST_IND_BOX_R 2         // 列表指示器选择框倒角
 #define DEFAULT_LIST_CHECK_BOX_R 2       // 列表确认选择框倒角
@@ -63,7 +78,12 @@
 #define DEFAULT_LIST_LINETAIL_CONF_PREFIX                                                          \
     "@#" // listtext中使用这些字符其中一个，行尾会显示一个单选框(其中第一个作为二值选项框会自动处理,如果开启自动处理的话)
 //------------------与Wave页面相关的默认参数
-#define DEFAULT_WAVE_FONT Font_6_8         // 波形字体
+#define DEFAULT_WAVE_FONT Font_6_8 // 波形字体
+#if (WOUOUI_SUPPORT_CHINESE_SYMBOL)
+#    define DEFAULT_WAVE_CFONT ZLabsBitmap_12px_CN_13x12_CN_t // 波形中文字体
+#else
+#    define DEFAULT_WAVE_CFONT ((cFONT){0})
+#endif
 #define DEFAULT_WAVE_Y_AXIS_LABEL_WIDTH 20 // y轴标签的宽度
 #define DEFAULT_WAVE_D_CUR_VAL_WIDTH 20    // 底部数值的显示宽度
 #define DEFAULT_WAVE_BOX_L_S 0             // 波形边框左边距
@@ -80,13 +100,23 @@
 
 //---------------与MsgWin页面相关的默认参数
 #define DEFAULT_MSG_WIN_FONT _04B_03___7x7_t // Msg弹窗字体
-#define DEFAULT_MSG_WIN_W 100                // MSG弹窗的宽度
-#define DEFAULT_MSG_WIN_V_S_MIN 12           // MSG弹窗到屏幕两侧的上下边距的最小值
-#define DEFAULT_MSG_WIN_R 2                  // MSG弹窗的倒角大小
-#define DEFAULT_MSG_WIN_FONT_MARGIN 4        // MSG弹窗文本到边框来的边距
+#if (WOUOUI_SUPPORT_CHINESE_SYMBOL)
+#    define DEFAULT_MSG_WIN_CFONT ZLabsBitmap_12px_CN_13x12_CN_t // Msg弹窗中文字体
+#else
+#    define DEFAULT_MSG_WIN_CFONT ((cFONT){0})
+#endif
+#define DEFAULT_MSG_WIN_W 100         // MSG弹窗的宽度
+#define DEFAULT_MSG_WIN_V_S_MIN 12    // MSG弹窗到屏幕两侧的上下边距的最小值
+#define DEFAULT_MSG_WIN_R 2           // MSG弹窗的倒角大小
+#define DEFAULT_MSG_WIN_FONT_MARGIN 4 // MSG弹窗文本到边框来的边距
 
 //---------------与ConfWin页面相关的默认参数
-#define DEFAULT_CONF_WIN_FONT Font_6_8   // CONF弹窗字体
+#define DEFAULT_CONF_WIN_FONT Font_6_8 // CONF弹窗字体
+#if (WOUOUI_SUPPORT_CHINESE_SYMBOL)
+#    define DEFAULT_CONF_WIN_CFONT ZLabsBitmap_12px_CN_13x12_CN_t // CONF弹窗中文字体
+#else
+#    define DEFAULT_CONF_WIN_CFONT ((cFONT){0})
+#endif
 #define DEFAULT_CONF_WIN_W 100           // CONF弹窗的宽度
 #define DEFAULT_CONF_WIN_V_S_MIN 12      // CONF弹窗到屏幕两侧的上下边距的最小值
 #define DEFAULT_CONF_WIN_R 2             // CONF弹窗的倒角大小
@@ -97,7 +127,12 @@
 #define DEFAULT_CONF_BTN_SLIDESTR_MODE 2 // WAVE文本的滚动模式
 
 //--------------与ValWin页面相关的默认参数
-#define DEFAULT_VAL_WIN_FONT Font_6_8    // Val弹窗字体
+#define DEFAULT_VAL_WIN_FONT Font_6_8 // Val弹窗字体
+#if (WOUOUI_SUPPORT_CHINESE_SYMBOL)
+#    define DEFAULT_VAL_WIN_CFONT ZLabsBitmap_12px_CN_13x12_CN_t // Val弹窗中文字体
+#else
+#    define DEFAULT_VAL_WIN_CFONT ((cFONT){0})
+#endif
 #define DEFAULT_VAL_WIN_STR_BUFF_SIZE 16 // 临时buff的大小
 #define DEFAULT_VAL_WIN_W 120            // Val弹窗的宽度
 #define DEFAULT_VAL_WIN_R 2              // Val弹窗的倒角大小
@@ -115,27 +150,39 @@
 //--------------与SpinWin页面相关的默认参数
 #define DEFAULT_SPIN_WIN_FONT Font_7_12     // 弹窗字体
 #define DEFAULT_SPIN_WIN_NUM_FONT Font_7_12 // 数字字体
-#define DEFAULT_VAL_WIN_STR_BUFF_SIZE 16    // 临时buff的大小
-#define DEFAULT_SPIN_WIN_W 100              // Spin弹窗的宽度
-#define DEFAULT_SPIN_WIN_NUM_S 2            // spin内数字之间横向间隔(必须是偶数，为了显示好看)
-#define DEFAULT_SPIN_WIN_FONT_MARGIN 4      // Spin弹窗内元素到边框的边距
-#define DEFAULT_SPIN_WIN_V_S 2              // Spin弹窗内元素间上下边距
-#define DEFAULT_SPIN_WIN_BOX_R 1            // Spin弹窗的指示器倒角大小
-#define DEFAULT_SPIN_WIN_BOX_H 3            // Spin弹窗的指示器高度
-#define DEFAULT_SPIN_WIN_R 2                // Spin弹窗的倒角大小
-#define DEFAULT_SPIN_WIN_MMVAL_S 1          // Spin弹窗的最小最大值间距
-#define DEFAULT_SPIN_WIN_SLI_TXT_MODE 2     // Spin弹窗文本的滚动模式
-#define DEFAULT_SPIN_WIN_SLI_VAL_MODE 2     // Spin弹窗数值文本的滚动模式
+#if (WOUOUI_SUPPORT_CHINESE_SYMBOL)
+#    define DEFAULT_SPIN_WIN_CFONT ZLabsBitmap_12px_CN_13x12_CN_t     // Spin弹窗中文字体
+#    define DEFAULT_SPIN_WIN_NUM_CFONT ZLabsBitmap_12px_CN_13x12_CN_t // Spin数字中文字体
+#else
+#    define DEFAULT_SPIN_WIN_CFONT ((cFONT){0})
+#    define DEFAULT_SPIN_WIN_NUM_CFONT ((cFONT){0})
+#endif
+#define DEFAULT_VAL_WIN_STR_BUFF_SIZE 16 // 临时buff的大小
+#define DEFAULT_SPIN_WIN_W 100           // Spin弹窗的宽度
+#define DEFAULT_SPIN_WIN_NUM_S 2         // spin内数字之间横向间隔(必须是偶数，为了显示好看)
+#define DEFAULT_SPIN_WIN_FONT_MARGIN 4   // Spin弹窗内元素到边框的边距
+#define DEFAULT_SPIN_WIN_V_S 2           // Spin弹窗内元素间上下边距
+#define DEFAULT_SPIN_WIN_BOX_R 1         // Spin弹窗的指示器倒角大小
+#define DEFAULT_SPIN_WIN_BOX_H 3         // Spin弹窗的指示器高度
+#define DEFAULT_SPIN_WIN_R 2             // Spin弹窗的倒角大小
+#define DEFAULT_SPIN_WIN_MMVAL_S 1       // Spin弹窗的最小最大值间距
+#define DEFAULT_SPIN_WIN_SLI_TXT_MODE 2  // Spin弹窗文本的滚动模式
+#define DEFAULT_SPIN_WIN_SLI_VAL_MODE 2  // Spin弹窗数值文本的滚动模式
 
 //---------------与ListWin页面相关的默认参数
 #define DEFAULT_LIST_WIN_FONT Font_6_8 // 弹窗字体
-#define DEFAULT_LIST_WIN_W 50          // 弹窗宽度
-#define DEFAULT_LIST_WIN_R 3           // 弹窗倒角
-#define DEFAULT_LIST_WIN_BOX_R 2       // 列表选择框倒角
-#define DEFAULT_LIST_WIN_L_S 6         // 列表文字左边距
-#define DEFAULT_LIST_WIN_R_S 0         // 列表文字的右边距(到侧边进度条的距离)
-#define DEFAULT_LIST_WIN_BAR_W 3       // 必须是单数，因为需要中间为1的进度条
-#define DEFAULT_LIST_WIN_TEXT_U_S 3    // 列表每行文字的上边距
-#define DEFAULT_LIST_WIN_TEXT_D_S 3    // 列表每行文字的上边距
+#if (WOUOUI_SUPPORT_CHINESE_SYMBOL)
+#    define DEFAULT_LIST_WIN_CFONT ZLabsBitmap_12px_CN_13x12_CN_t // List弹窗中文字体
+#else
+#    define DEFAULT_LIST_WIN_CFONT ((cFONT){0})
+#endif
+#define DEFAULT_LIST_WIN_W 50       // 弹窗宽度
+#define DEFAULT_LIST_WIN_R 3        // 弹窗倒角
+#define DEFAULT_LIST_WIN_BOX_R 2    // 列表选择框倒角
+#define DEFAULT_LIST_WIN_L_S 6      // 列表文字左边距
+#define DEFAULT_LIST_WIN_R_S 0      // 列表文字的右边距(到侧边进度条的距离)
+#define DEFAULT_LIST_WIN_BAR_W 3    // 必须是单数，因为需要中间为1的进度条
+#define DEFAULT_LIST_WIN_TEXT_U_S 3 // 列表每行文字的上边距
+#define DEFAULT_LIST_WIN_TEXT_D_S 3 // 列表每行文字的上边距
 
 #endif

@@ -10,7 +10,6 @@ extern "C" {
 #include "WouoUI_graph.h"
 #include "WouoUI_msg.h"
 
-
 //===================================页面共用的类型参数方法==================================
 // 定义字符串类型
 typedef char* String;
@@ -129,7 +128,13 @@ void WouoUI_SetPageAutoDealWithMsg(Page* page, bool open);
 
 //===================================================Title页面====================================================
 // 磁贴宏参数,所有磁贴页面都使用同一套参数
-#define TILE_B_TITLE_FONT DEFAULT_TILE_B_TITLE_FNOT // 磁贴大标题字体
+#define TILE_B_TITLE_FONT DEFAULT_TILE_B_TITLE_FNOT   // 磁贴大标题字体
+#define TILE_B_TITLE_CFONT DEFAULT_TILE_B_TITLE_CFONT // 磁贴大标题中文字体
+#if (WOUOUI_SUPPORT_CHINESE_SYMBOL)
+#    define TILE_B_TITLE_FONT_H MAX(GET_FNOT_H(TILE_B_TITLE_FONT), GET_CFONT_H(TILE_B_TITLE_CFONT))
+#else
+#    define TILE_B_TITLE_FONT_H GET_FNOT_H(TILE_B_TITLE_FONT)
+#endif
 #define TILE_BAR_H DEFAULT_TILE_BAR_H // 磁贴装饰条高度(初始化时会检查与字体的高度大小)
 #define TILE_BAR_W DEFAULT_TILE_BAR_W // 磁贴装饰条宽度
 #define TILE_BAR_D DEFAULT_TILE_BAR_D // 磁贴装饰条到页面底部的距离
@@ -137,17 +142,17 @@ void WouoUI_SetPageAutoDealWithMsg(Page* page, bool open);
     (WOUOUI_BUFF_HEIGHT - DEFAULT_TILE_BAR_D - DEFAULT_TILE_BAR_H) // 磁贴装饰条到页面顶部的距离
 #define TILE_ICON_W DEFAULT_TILE_ICON_W                            // 磁贴图标宽度
 #define TILE_ICON_H DEFAULT_TILE_ICON_H                            // 磁贴图标高度
-#define TILE_ICON_IND_U DEFAULT_TILE_ICON_IND_U // 磁贴指示器与磁贴的上边距
-#define TILE_ICON_IND_D DEFAULT_TILE_ICON_IND_D // 磁贴指示器与磁贴的下边距
-#define TILE_ICON_IND_L DEFAULT_TILE_ICON_IND_L // 磁贴指示器与磁贴的左边距
-#define TILE_ICON_IND_R DEFAULT_TILE_ICON_IND_R // 磁贴指示器与磁贴的右边距
+#define TILE_ICON_IND_U DEFAULT_TILE_ICON_IND_U                    // 磁贴指示器与磁贴的上边距
+#define TILE_ICON_IND_D DEFAULT_TILE_ICON_IND_D                    // 磁贴指示器与磁贴的下边距
+#define TILE_ICON_IND_L DEFAULT_TILE_ICON_IND_L                    // 磁贴指示器与磁贴的左边距
+#define TILE_ICON_IND_R DEFAULT_TILE_ICON_IND_R                    // 磁贴指示器与磁贴的右边距
 #define TILE_ICON_IND_W (TILE_ICON_IND_L + TILE_ICON_W + TILE_ICON_IND_R) // 磁贴指示器宽度
 #define TILE_ICON_IND_H (TILE_ICON_IND_U + TILE_ICON_H + TILE_ICON_IND_D) // 磁贴指示器高度
 #define TILE_ICON_IND_SL DEFAULT_TILE_ICON_IND_SL                         // 磁贴指示器边长
 #define TILE_ICON_S (DEFAULT_TILE_ICON_S + DEFAULT_TILE_ICON_W) // 磁贴图标间距(中心到中心)
 #define TILE_ICON_U                                                                                \
     (WOUOUI_BUFF_HEIGHT - TILE_BAR_D - TILE_BAR_H - TILE_ICON_H) / 2 // 磁贴图标上边距(自动居中)
-#define TILE_SLIDESTR_MODE DEFAULT_TILE_SLIDESTR_MODE // 磁贴标题文本的滚动模式
+#define TILE_SLIDESTR_MODE DEFAULT_TILE_SLIDESTR_MODE                // 磁贴标题文本的滚动模式
 #define ICON_BUFFSIZE (TILE_ICON_W * (TILE_ICON_H / 8 + 1))
 #if (TILE_BAR_D + TILE_BAR_H + TILE_ICON_IND_H + 1 >                                               \
      WOUOUI_BUFF_HEIGHT) // 磁贴参数的宏检查(检查icon+bar是否会大于整个Height)
@@ -158,10 +163,10 @@ void WouoUI_SetPageAutoDealWithMsg(Page* page, bool open);
 #define TILE_ASSERT_IND_V                                                                          \
     ((TILE_ICON_U - TILE_ICON_IND_U < 0) ||                                                        \
      (TILE_ICON_U + TILE_ICON_H + TILE_ICON_IND_D > TILE_BAR_U)) // 检查指示器竖直大小
-#if (TILE_ASSERT_IND_H || TILE_ASSERT_IND_V) // 检查指示器大小超过icon间隔
+#if (TILE_ASSERT_IND_H || TILE_ASSERT_IND_V)                     // 检查指示器大小超过icon间隔
 #    warning "The Indicator large than the size of icon "
 #endif
-#define TILE_MACRO_ASSERT (TILE_BAR_H < GET_FNOT_H(TILE_B_TITLE_FONT))
+#define TILE_MACRO_ASSERT (TILE_BAR_H < TILE_B_TITLE_FONT_H)
 // BAR的高度必须大于字体高度，上面的检查才有意义，这个检查在Init中执行，返回True需要打印log提示
 // TitlePage的类型定义
 // TitlePage 需要的共用变量集合(类变量)
@@ -207,12 +212,18 @@ void WouoUI_TItlePageNextItem(TitlePage* tp);
 
 //===================================================List页面====================================================
 // 列表参数,所有列表使用同一套参数
-#define LIST_TEXT_FONT DEFAULT_LIST_TEXT_FONT // 列表每行文字字体
-#define LIST_TEXT_U_S DEFAULT_LIST_TEXT_U_S   // 列表每行文字的上边距
-#define LIST_TEXT_D_S DEFAULT_LIST_TEXT_D_S   // 列表每行文字的上边距
-#define LIST_LINE_H (GET_FNOT_H(LIST_TEXT_FONT) + LIST_TEXT_U_S + LIST_TEXT_D_S) // 列表单行高度
-#define LIST_TEXT_L_S DEFAULT_LIST_TEXT_L_S   // 列表每行文字的左边距
-#define LIST_IND_VAL_S DEFAULT_LIST_IND_VAL_S // 指示器和val文本的间距
+#define LIST_TEXT_FONT DEFAULT_LIST_TEXT_FONT   // 列表每行文字字体
+#define LIST_TEXT_CFONT DEFAULT_LIST_TEXT_CFONT // 列表每行文字中文字体
+#if (WOUOUI_SUPPORT_CHINESE_SYMBOL)
+#    define LIST_TEXT_FONT_H MAX(GET_FNOT_H(LIST_TEXT_FONT), GET_CFONT_H(LIST_TEXT_CFONT))
+#else
+#    define LIST_TEXT_FONT_H GET_FNOT_H(LIST_TEXT_FONT)
+#endif
+#define LIST_TEXT_U_S DEFAULT_LIST_TEXT_U_S                            // 列表每行文字的上边距
+#define LIST_TEXT_D_S DEFAULT_LIST_TEXT_D_S                            // 列表每行文字的上边距
+#define LIST_LINE_H (LIST_TEXT_FONT_H + LIST_TEXT_U_S + LIST_TEXT_D_S) // 列表单行高度
+#define LIST_TEXT_L_S DEFAULT_LIST_TEXT_L_S                            // 列表每行文字的左边距
+#define LIST_IND_VAL_S DEFAULT_LIST_IND_VAL_S                          // 指示器和val文本的间距
 #define LIST_BAR_W DEFAULT_LIST_BAR_W // 列表进度条宽度，需要是奇数，因为正中间有1像素宽度的线
 #define LIST_TEXT_R_S                                                                              \
     (DEFAULT_LIST_TEXT_R_S + LIST_BAR_W) // 列表每行结尾的数值的右边距（包括进度条宽度 LIST_BAR_W）
@@ -220,14 +231,14 @@ void WouoUI_TItlePageNextItem(TitlePage* tp);
     (DEFAULT_LIST_TEXT_LEN_PER_MAX * WOUOUI_BUFF_WIDTH / 100) // 列表文字的最大宽度
 #define LIST_VAL_MAX_LEN                                                                           \
     (WOUOUI_BUFF_WIDTH - LIST_TEXT_MAX_LEN - LIST_TEXT_R_S - LIST_TEXT_L_S * 2 -                   \
-     LIST_IND_VAL_S) // 这里左间距*2是为了给val和text之间留空间
+     LIST_IND_VAL_S)                                  // 这里左间距*2是为了给val和text之间留空间
 #define LIST_VAL_BUFF_SIZE DEFAULT_LIST_VAL_BUFF_SIZE // 列表值文本缓冲区的大小
 #define LIST_IND_BOX_R DEFAULT_LIST_IND_BOX_R         // 列表指示器盒子倒角
 // 列表行尾选择选项参数
-#define CHECK_BOX_U_S LIST_TEXT_U_S // 选择框在每行的上边距(与文字保持同高)
-#define CHECK_BOX_R_S LIST_TEXT_R_S // 选择框的右边距（包括进度条宽度 LIST_BAR_W）(与值文字对齐)
-#define CHECK_BOX_F_H GET_FNOT_H(LIST_TEXT_FONT) // 选择框外框高度(与文字高度保持一致)
-#define CHECK_BOX_F_W CHECK_BOX_F_H              // 选择框外框宽度(方形，与高度保持一致)
+#define CHECK_BOX_U_S LIST_TEXT_U_S    // 选择框在每行的上边距(与文字保持同高)
+#define CHECK_BOX_R_S LIST_TEXT_R_S    // 选择框的右边距（包括进度条宽度 LIST_BAR_W）(与值文字对齐)
+#define CHECK_BOX_F_H LIST_TEXT_FONT_H // 选择框外框高度(与文字高度保持一致)
+#define CHECK_BOX_F_W CHECK_BOX_F_H    // 选择框外框宽度(方形，与高度保持一致)
 #define CHECK_BOX_D_S DEFAULT_LIST_CHECK_BOX_D_S // 选择框里面的点距离外框的边距
 #define CHECK_BOX_D_W                                                                              \
     CHECK_BOX_F_W - 2 * (CHECK_BOX_D_S + 1) // 选择框里面的点宽度(这里加的常量1是外框的线条宽)
@@ -256,11 +267,11 @@ void WouoUI_TItlePageNextItem(TitlePage* tp);
 // List页面类型定义
 //  ListPage 需要的共用变量集合(类变量)
 struct ListPageVar {
-    bool radio_click_flag; // 标志位，用于标记在单选项页面内是否单击了Click
+    bool radio_click_flag;    // 标志位，用于标记在单选项页面内是否单击了Click
     int16_t indicator_w_temp; // 用于暂时存储指示器长度，统一在ind_ctrl中赋值给指示器
     AnimPos optInt;           // 列表中每个选项的间隔值
-    SlideStr opt_text_ss; // 滑动选项文字
-    SlideStr opt_val_ss;  // 滑动选项数值
+    SlideStr opt_text_ss;     // 滑动选项文字
+    SlideStr opt_val_ss;      // 滑动选项数值
 };
 typedef enum {
     Setting_none = 0x00, // 页面无设置
@@ -313,16 +324,22 @@ Option* WouoUI_ListTitlePageGetSelectOpt(const Page* cur_page_addr);
 
 //===================================================Wave页面====================================================
 // 波形相关参数
-#define WAVE_FONT DEFAULT_WAVE_FONT                                          // 波形字体
+#define WAVE_FONT DEFAULT_WAVE_FONT   // 波形字体
+#define WAVE_CFONT DEFAULT_WAVE_CFONT // 波形中文字体
+#if (WOUOUI_SUPPORT_CHINESE_SYMBOL)
+#    define WAVE_FONT_H MAX(GET_FNOT_H(WAVE_FONT), GET_CFONT_H(WAVE_CFONT))
+#else
+#    define WAVE_FONT_H GET_FNOT_H(WAVE_FONT)
+#endif
 #define WAVE_BOX_L_S DEFAULT_WAVE_BOX_L_S                                    // 波形边框左边距
 #define WAVE_BOX_R_S DEFAULT_WAVE_BOX_R_S                                    // 波形边框右边距
 #define WAVE_BOX_U_S DEFAULT_WAVE_BOX_U_S                                    // 波形边框上边距
 #define WAVE_BOX_D_S DEFAULT_WAVE_BOX_D_S                                    // 波形边框下边距
 #define WAVE_BOX_W (WOUOUI_BUFF_WIDTH - DEFAULT_WAVE_Y_AXIS_LABEL_WIDTH - 1) // 波形边框宽度
 #define WAVE_BOX_H                                                                                 \
-    (WOUOUI_BUFF_HEIGHT - GET_FNOT_H(WAVE_FONT) - DEFAULT_WAVE_BOX_D_S -                           \
-     DEFAULT_WAVE_TEXT_D_S)                          // 波形边框高度
-#define WAVE_STOP_SIG_HW (GET_FNOT_H(WAVE_FONT) - 1) // 波形停止标志高度/宽度，为方形保持与字体同高
+    (WOUOUI_BUFF_HEIGHT - WAVE_FONT_H - DEFAULT_WAVE_BOX_D_S -                                     \
+     DEFAULT_WAVE_TEXT_D_S)                // 波形边框高度
+#define WAVE_STOP_SIG_HW (WAVE_FONT_H - 1) // 波形停止标志高度/宽度，为方形保持与字体同高
 #define WAVE_Y_AXIS_LABEL_WIDTH DEFAULT_WAVE_Y_AXIS_LABEL_WIDTH // y轴标签的宽度
 #define WAVE_TEXT_L_S DEFAULT_WAVE_D_TXT_VAL_S                  // 波形文本左边距
 #define WAVE_TEXT_R_S DEFAULT_WAVE_D_TXT_VAL_S                  // 波形文本右边距

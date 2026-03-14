@@ -9,12 +9,18 @@ extern "C" {
 
 //-------------------------------------MagWin页面----------------------------------------------
 // 宏参数
-#define MSG_WIN_FONT DEFAULT_MSG_WIN_FONT                                // 弹窗字体
+#define MSG_WIN_FONT DEFAULT_MSG_WIN_FONT   // 弹窗字体
+#define MSG_WIN_CFONT DEFAULT_MSG_WIN_CFONT // 弹窗中文字体
+#if (WOUOUI_SUPPORT_CHINESE_SYMBOL)
+#    define MSG_WIN_FONT_H MAX(GET_FNOT_H(MSG_WIN_FONT), GET_CFONT_H(MSG_WIN_CFONT))
+#else
+#    define MSG_WIN_FONT_H GET_FNOT_H(MSG_WIN_FONT)
+#endif
 #define MSG_WIN_W DEFAULT_MSG_WIN_W                                      // 弹窗宽度
 #define MSG_WIN_H_MAX (WOUOUI_BUFF_HEIGHT - 2 * DEFAULT_MSG_WIN_V_S_MIN) // 弹窗最大高度
 #define MSG_WIN_R DEFAULT_MSG_WIN_R                                      // 弹窗倒角
-#define MSG_WIN_FONT_MARGIN DEFAULT_MSG_WIN_FONT_MARGIN // MSG弹窗文字到框的边距
-#if (DEFAULT_MSG_WIN_W > WOUOUI_BUFF_WIDTH)             // 边框太宽了
+#define MSG_WIN_FONT_MARGIN DEFAULT_MSG_WIN_FONT_MARGIN                  // MSG弹窗文字到框的边距
+#if (DEFAULT_MSG_WIN_W > WOUOUI_BUFF_WIDTH)                              // 边框太宽了
 #    warning "the width of msg_win is too large, gt the width of buff"
 #endif
 #if (MSG_WIN_H_MAX < 24)
@@ -22,8 +28,8 @@ extern "C" {
 #endif
 // 类型定义
 struct MsgWinVar {
-    Canvas canvas;            // 弹窗画布
-    int16_t indicator_h_temp; // 暂时保存指示器的高度值在ind_ctrl中统一给指示器赋值
+    Canvas canvas;               // 弹窗画布
+    int16_t indicator_h_temp;    // 暂时保存指示器的高度值在ind_ctrl中统一给指示器赋值
     uint16_t autonewline_need_h; // 弹窗文本是否需要滑动
 };
 typedef struct {
@@ -81,19 +87,25 @@ bool WouoUI_MsgWinPageSlideDownTxt(MsgWin* mw);
 
 //-----------------------------------------------ConfWin页面-----------------------------------------------------------
 // 宏参数
-#define CONF_WIN_FONT DEFAULT_CONF_WIN_FONT                                // 弹窗字体
+#define CONF_WIN_FONT DEFAULT_CONF_WIN_FONT   // 弹窗字体
+#define CONF_WIN_CFONT DEFAULT_CONF_WIN_CFONT // 弹窗中文字体
+#if (WOUOUI_SUPPORT_CHINESE_SYMBOL)
+#    define CONF_WIN_FONT_H MAX(GET_FNOT_H(CONF_WIN_FONT), GET_CFONT_H(CONF_WIN_CFONT))
+#else
+#    define CONF_WIN_FONT_H GET_FNOT_H(CONF_WIN_FONT)
+#endif
 #define CONF_WIN_W DEFAULT_CONF_WIN_W                                      // 弹窗宽度
 #define CONF_WIN_HORIZON_S ((WOUOUI_BUFF_WIDTH - DEFAULT_CONF_WIN_W) >> 1) // 弹窗水平上与两侧的边距
 #define CONF_WIN_H_MAX (WOUOUI_BUFF_HEIGHT - 2 * DEFAULT_CONF_WIN_V_S_MIN) // 弹窗最大高度
 #define CONF_WIN_R DEFAULT_CONF_WIN_R                                      // 弹窗倒角
-#define CONF_WIN_FONT_MARGIN DEFAULT_CONF_WIN_FONT_MARGIN // CONF弹窗文字到框的边距
+#define CONF_WIN_FONT_MARGIN DEFAULT_CONF_WIN_FONT_MARGIN                  // CONF弹窗文字到框的边距
 #define CONF_WIN_IND_BTN_S DEFAULT_CONF_WIN_IND_BTN_S // 弹窗的按键内文字到边框的距离
-#define CONF_WIN_BTN_H (GET_FNOT_H(CONF_WIN_FONT) + 2 * DEFAULT_CONF_WIN_IND_BTN_S) // 按键高度
-#define CONF_WIN_BTN_R DEFAULT_CONF_WIN_BTN_R                                       // 按键倒角
-#define CONF_TEXT_BTN_S DEFAULT_CONF_WIN_TEXT_BTN_S // 文本和按键的竖直间距
+#define CONF_WIN_BTN_H (CONF_WIN_FONT_H + 2 * DEFAULT_CONF_WIN_IND_BTN_S) // 按键高度
+#define CONF_WIN_BTN_R DEFAULT_CONF_WIN_BTN_R                             // 按键倒角
+#define CONF_TEXT_BTN_S DEFAULT_CONF_WIN_TEXT_BTN_S                       // 文本和按键的竖直间距
 #define CONF_BTN_MAX_W                                                                             \
     (WOUOUI_MIDDLE_H - CONF_WIN_HORIZON_S - 2 * DEFAULT_CONF_WIN_FONT_MARGIN) // 按键文本的最大宽度
-#define CONF_BTN_SLIDESTR_MODE DEFAULT_CONF_BTN_SLIDESTR_MODE // 按键文本的移动模式
+#define CONF_BTN_SLIDESTR_MODE DEFAULT_CONF_BTN_SLIDESTR_MODE                 // 按键文本的移动模式
 #if (DEFAULT_CONF_WIN_W > WOUOUI_BUFF_WIDTH)
 #    warning "the width of Conf win is too large"
 #endif
@@ -168,34 +180,39 @@ void WouoUI_ConfWinPageToggleBtn(ConfWin* cw);
 
 //---------------------------------------------------ValWin页面-----------------------------------------------------------------
 // 宏定义
-#define VAL_WIN_FONT DEFAULT_VAL_WIN_FONT                   // Val弹窗字体
+#define VAL_WIN_FONT DEFAULT_VAL_WIN_FONT   // Val弹窗字体
+#define VAL_WIN_CFONT DEFAULT_VAL_WIN_CFONT // Val弹窗中文字体
+#if (WOUOUI_SUPPORT_CHINESE_SYMBOL)
+#    define VAL_WIN_FONT_H MAX(GET_FNOT_H(VAL_WIN_FONT), GET_CFONT_H(VAL_WIN_CFONT))
+#else
+#    define VAL_WIN_FONT_H GET_FNOT_H(VAL_WIN_FONT)
+#endif
 #define VAL_WIN_STR_BUFF_SIZE DEFAULT_VAL_WIN_STR_BUFF_SIZE // 临时buff的大小
 #define VAL_WIN_FONT_MARGIN DEFAULT_VAL_WIN_FONT_MARGIN     // 弹窗内部元素到边框的边距
 #define VAL_WIN_W DEFAULT_VAL_WIN_W                         // Val弹窗的宽度
 #define VAL_WIN_H                                                                                  \
-    (2 * GET_FNOT_H(DEFAULT_VAL_WIN_FONT) + 2 * DEFAULT_VAL_WIN_FONT_MARGIN +                      \
-     DEFAULT_VAL_TEXT_BAR_S)                                       // val弹窗的高度
+    (2 * VAL_WIN_FONT_H + 2 * DEFAULT_VAL_WIN_FONT_MARGIN + DEFAULT_VAL_TEXT_BAR_S) // val弹窗的高度
 #define VAL_WIN_R DEFAULT_VAL_WIN_R                                // Val弹窗的倒角大小
 #define VAL_WIN_X ((WOUOUI_BUFF_WIDTH - DEFAULT_VAL_WIN_W) >> 1)   // 弹窗的起始x
 #define VAL_WIN_Y ((WOUOUI_BUFF_HEIGHT - VAL_WIN_H) >> 1)          // 弹窗的起始y
 #define VAL_WIN_TXT_W_MAX DEFAULT_VAL_WIN_TXT_W_MAX                // txt可显示最大宽度
-#define VAL_WIN_TXTVAL_H GET_FNOT_H(DEFAULT_VAL_WIN_FONT)          // text VAL的高度
+#define VAL_WIN_TXTVAL_H VAL_WIN_FONT_H                            // text VAL的高度
 #define VAL_WIN_TXTVAL_X (VAL_WIN_X + DEFAULT_VAL_WIN_FONT_MARGIN) // text val的起始x
 #define VAL_WIN_TXTVAL_Y_OFS DEFAULT_VAL_WIN_FONT_MARGIN           // text val相对于弹窗的y偏移
-#define VAL_WIN_TXTVAL_S DEFAULT_VAL_WIN_TXTVAL_S // 弹窗内文本和val间的间距
+#define VAL_WIN_TXTVAL_S DEFAULT_VAL_WIN_TXTVAL_S                  // 弹窗内文本和val间的间距
 #define VAL_WIN_VAL_W_MAX                                                                          \
     (VAL_WIN_W - VAL_WIN_TXT_W_MAX - VAL_WIN_TXTVAL_S -                                            \
      2 * VAL_WIN_FONT_MARGIN) // val可显示的最大宽度
 #define VAL_WIN_MMVAL_W_MAX                                                                        \
     ((DEFAULT_VAL_WIN_W - 2 * DEFAULT_VAL_WIN_FONT_MARGIN - 2 * DEFAULT_VAL_MMVAL_BAR_S -          \
       DEFAULT_VAL_WIN_BAR_W) >>                                                                    \
-     1)                                                  // minmaxval可显示最大宽度
-#define VAL_WIN_MMVAL_H GET_FNOT_H(DEFAULT_VAL_WIN_FONT) // MINMAXVAL的高度
+     1)                                // minmaxval可显示最大宽度
+#define VAL_WIN_MMVAL_H VAL_WIN_FONT_H // MINMAXVAL的高度
 #define VAL_WIN_MMVAL_Y_OFS                                                                        \
-    (VAL_WIN_TXTVAL_Y_OFS + VAL_WIN_TXTVAL_H + DEFAULT_VAL_TEXT_BAR_S) // mmval相对于弹窗的y偏移
-#define VAL_WIN_BAR_W DEFAULT_VAL_WIN_BAR_W                            // 进度条宽度
-#define VAL_WIN_BAR_H DEFAULT_VAL_WIN_BAR_H                            // 进度条高度
-#define VAL_WIN_BAR_R DEFAULT_VAL_WIN_BAR_R                            // 进度条倒角
+    (VAL_WIN_TXTVAL_Y_OFS + VAL_WIN_TXTVAL_H + DEFAULT_VAL_TEXT_BAR_S)   // mmval相对于弹窗的y偏移
+#define VAL_WIN_BAR_W DEFAULT_VAL_WIN_BAR_W                              // 进度条宽度
+#define VAL_WIN_BAR_H DEFAULT_VAL_WIN_BAR_H                              // 进度条高度
+#define VAL_WIN_BAR_R DEFAULT_VAL_WIN_BAR_R                              // 进度条倒角
 #define VAL_WIN_BAR_X ((WOUOUI_BUFF_WIDTH - DEFAULT_VAL_WIN_BAR_W) >> 1) // 进度条的起始X
 #define VAL_WIN_BAR_Y_OFS                                                                          \
     (VAL_WIN_MMVAL_Y_OFS + ((VAL_WIN_MMVAL_H - VAL_WIN_BAR_H) >> 1)) // 进度条相对于边框的Y偏移
@@ -271,8 +288,17 @@ bool WouoUI_ValWinPageValDecrease(ValWin* vw);
 
 //---------------------------------------------------------SpinWin页面---------------------------------------------------
 // 宏定义
-#define SPIN_WIN_FONT DEFAULT_SPIN_WIN_FONT                  // 弹窗字体
-#define SPIN_WIN_NUM_FONT DEFAULT_SPIN_WIN_NUM_FONT          // 数字字体
+#define SPIN_WIN_FONT DEFAULT_SPIN_WIN_FONT           // 弹窗字体
+#define SPIN_WIN_NUM_FONT DEFAULT_SPIN_WIN_NUM_FONT   // 数字字体
+#define SPIN_WIN_CFONT DEFAULT_SPIN_WIN_CFONT         // 弹窗中文字体
+#define SPIN_WIN_NUM_CFONT DEFAULT_SPIN_WIN_NUM_CFONT // 数字中文字体
+#if (WOUOUI_SUPPORT_CHINESE_SYMBOL)
+#    define SPIN_WIN_FONT_H MAX(GET_FNOT_H(SPIN_WIN_FONT), GET_CFONT_H(SPIN_WIN_CFONT))
+#    define SPIN_WIN_NUM_FONT_H MAX(GET_FNOT_H(SPIN_WIN_NUM_FONT), GET_CFONT_H(SPIN_WIN_NUM_CFONT))
+#else
+#    define SPIN_WIN_FONT_H GET_FNOT_H(SPIN_WIN_FONT)
+#    define SPIN_WIN_NUM_FONT_H GET_FNOT_H(SPIN_WIN_NUM_FONT)
+#endif
 #define SPIN_WIN_STR_BUFF_SIZE DEFAULT_VAL_WIN_STR_BUFF_SIZE // 临时buff的大小
 #define SPIN_WIN_FONT_MARGIN DEFAULT_SPIN_WIN_FONT_MARGIN    // 弹窗内元素到边框的间距
 #define SPIN_WIN_W DEFAULT_SPIN_WIN_W                        // 弹窗宽度
@@ -282,19 +308,18 @@ bool WouoUI_ValWinPageValDecrease(ValWin* vw);
 #define SPIN_WIN_BOX_H DEFAULT_SPIN_WIN_BOX_H                // 弹窗指示器在数字底部时的高度
 #define SPIN_WIN_R DEFAULT_SPIN_WIN_R
 #define SPIN_WIN_H                                                                                 \
-    (2 * SPIN_WIN_FONT_MARGIN + 2 * GET_FNOT_H(SPIN_WIN_NUM_FONT) + GET_FNOT_H(SPIN_WIN_FONT) +    \
-     2 * SPIN_WIN_V_S + SPIN_WIN_BOX_H) // 弹窗高度
+    (2 * SPIN_WIN_FONT_MARGIN + 2 * SPIN_WIN_NUM_FONT_H + SPIN_WIN_FONT_H + 2 * SPIN_WIN_V_S +     \
+     SPIN_WIN_BOX_H) // 弹窗高度
 #define SPIN_WIN_Y ((WOUOUI_BUFF_HEIGHT - SPIN_WIN_H) >> 1)
 #define SPIN_WIN_X ((WOUOUI_BUFF_WIDTH - SPIN_WIN_W) >> 1)
 #define SPIN_WIN_TXT_Y_OFS SPIN_WIN_FONT_MARGIN // 文本y坐标相对边框的偏移
 #define SPIN_WIN_MMVAL_Y_OFS                                                                       \
-    (SPIN_WIN_TXT_Y_OFS + GET_FNOT_H(SPIN_WIN_FONT) +                                              \
-     DEFAULT_SPIN_WIN_V_S) // 最大最小值y坐标相对边框的偏移
+    (SPIN_WIN_TXT_Y_OFS + SPIN_WIN_FONT_H + DEFAULT_SPIN_WIN_V_S) // 最大最小值y坐标相对边框的偏移
 #define SPIN_WIN_MMVAL_MID_LX                                                                      \
     (WOUOUI_MIDDLE_H - (GET_FNOT_W(SPIN_WIN_NUM_FONT) >> 1)) // mmval中间间隔符左侧的横坐标
 #define SPIN_WIN_MMVAL_MID_RX                                                                      \
     (WOUOUI_MIDDLE_H + (GET_FNOT_W(SPIN_WIN_NUM_FONT) >> 1)) // mmval中间间隔符左侧的横坐标
-#define SPIN_WIN_MMVAL_S DEFAULT_SPIN_WIN_MMVAL_S // mmval和中间间隔符之间的间隔
+#define SPIN_WIN_MMVAL_S DEFAULT_SPIN_WIN_MMVAL_S            // mmval和中间间隔符之间的间隔
 #define SPIN_WIN_MIN_W_MAX                                                                         \
     (SPIN_WIN_MMVAL_MID_LX - SPIN_WIN_MMVAL_S -                                                    \
      (SPIN_WIN_X + SPIN_WIN_FONT_MARGIN)) // 最小值显示的最大宽度
@@ -302,8 +327,8 @@ bool WouoUI_ValWinPageValDecrease(ValWin* vw);
     ((SPIN_WIN_X + SPIN_WIN_W - SPIN_WIN_FONT_MARGIN) -                                            \
      (SPIN_WIN_MMVAL_MID_RX + SPIN_WIN_MMVAL_S)) // 最大值显示的最大宽度
 #define SPIN_WIN_NUM_Y_OFS                                                                         \
-    (SPIN_WIN_MMVAL_Y_OFS + GET_FNOT_H(SPIN_WIN_NUM_FONT) +                                        \
-     DEFAULT_SPIN_WIN_V_S) // 最大最小值y坐标相对边框的偏移
+    (SPIN_WIN_MMVAL_Y_OFS + SPIN_WIN_NUM_FONT_H +                                                  \
+     DEFAULT_SPIN_WIN_V_S)                                  // 最大最小值y坐标相对边框的偏移
 #define SPIN_WIN_SLI_TXT_MODE DEFAULT_SPIN_WIN_SLI_TXT_MODE // 文本的滑动模式
 #define SPIN_WIN_SLI_VAL_MODE DEFAULT_SPIN_WIN_SLI_VAL_MODE // 数值的滑动模式
 #if (SPIN_WIN_W > WOUOUI_BUFF_WIDTH)
@@ -386,7 +411,13 @@ bool WouoUI_SpinWinPageChangeSelbit(SpinWin* spw, int32_t Inc1OrDec_1);
 
 //--------------------------------------------------ListWin页面------------------------------------------------------------------
 // 宏定义
-#define LIST_WIN_FONT DEFAULT_LIST_WIN_FONT                          // 弹窗字体
+#define LIST_WIN_FONT DEFAULT_LIST_WIN_FONT   // 弹窗字体
+#define LIST_WIN_CFONT DEFAULT_LIST_WIN_CFONT // 弹窗中文字体
+#if (WOUOUI_SUPPORT_CHINESE_SYMBOL)
+#    define LIST_WIN_FONT_H MAX(GET_FNOT_H(LIST_WIN_FONT), GET_CFONT_H(LIST_WIN_CFONT))
+#else
+#    define LIST_WIN_FONT_H GET_FNOT_H(LIST_WIN_FONT)
+#endif
 #define LIST_WIN_W DEFAULT_LIST_WIN_W                                // 弹窗宽度
 #define LIST_WIN_R DEFAULT_LIST_WIN_R                                // 弹窗倒角
 #define LIST_WIN_BOX_R DEFAULT_LIST_WIN_BOX_R                        // 列表选择框倒角
@@ -394,9 +425,8 @@ bool WouoUI_SpinWinPageChangeSelbit(SpinWin* spw, int32_t Inc1OrDec_1);
 #define LIST_WIN_R_S (DEFAULT_LIST_WIN_R_S + DEFAULT_LIST_WIN_BAR_W) // 列表右边距不含进度条
 #define LIST_WIN_TEXT_U_S DEFAULT_LIST_WIN_TEXT_U_S                  // 列表每行文字的上边距
 #define LIST_WIN_TEXT_D_S DEFAULT_LIST_WIN_TEXT_D_S                  // 列表每行文字的下边距
-#define LIST_WIN_LINE_H                                                                            \
-    (GET_FNOT_H(LIST_WIN_FONT) + LIST_WIN_TEXT_U_S + LIST_WIN_TEXT_D_S) // 列表单行高度
-#define LIST_WIN_BAR_W DEFAULT_LIST_WIN_BAR_W                           // 默认进度条的宽度
+#define LIST_WIN_LINE_H (LIST_WIN_FONT_H + LIST_WIN_TEXT_U_S + LIST_WIN_TEXT_D_S) // 列表单行高度
+#define LIST_WIN_BAR_W DEFAULT_LIST_WIN_BAR_W // 默认进度条的宽度
 // 类型声明
 struct ListWinVar {
     AnimPos win_x;      // 弹窗的横坐标

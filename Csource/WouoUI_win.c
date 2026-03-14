@@ -37,8 +37,8 @@ bool WouoUI_MsgWinPageIn(
     p_cur_ui->mw_var.canvas.h = p_cur_ui->indicator.h.pos_cur - 2 * MSG_WIN_FONT_MARGIN;
     p_cur_ui->mw_var.canvas.w = p_cur_ui->indicator.w.pos_cur - 2 * MSG_WIN_FONT_MARGIN;
     if (NULL != mw->content && p_cur_ui->state == ui_page_in)
-        WouoUI_CanvasDrawStrAutoNewline(&(p_cur_ui->mw_var.canvas), 0, mw->str_start_y,
-                                        MSG_WIN_FONT, (uint8_t*)mw->content);
+        WouoUI_CanvasDrawStrAutoNewlineEx(&(p_cur_ui->mw_var.canvas), 0, mw->str_start_y,
+                                          MSG_WIN_FONT, MSG_WIN_CFONT, (uint8_t*)mw->content);
     // msgwin的文字动画是随着指示器运动的，所以这里直接判断指示器是否完成与否即可
     if (p_cur_ui->indicator.x.pos_cur == p_cur_ui->indicator.x.pos_tgt &&
         p_cur_ui->indicator.h.pos_cur == p_cur_ui->indicator.h.pos_tgt &&
@@ -62,8 +62,8 @@ void WouoUI_MsgWinPageInParaInit(PageAddr page_addr) // 进入页面过度动画
         if (NULL == mw->content)
             mw->content = (char*)WOUOUI_WIN_TXT_DEFAULT;
     }
-    p_cur_ui->mw_var.autonewline_need_h = WouoUI_GetStrHeightAutoNewLine(
-        MSG_WIN_W - 2 * MSG_WIN_FONT_MARGIN, mw->content, MSG_WIN_FONT);
+    p_cur_ui->mw_var.autonewline_need_h = WouoUI_GetStrHeightAutoNewLineEx(
+        MSG_WIN_W - 2 * MSG_WIN_FONT_MARGIN, mw->content, MSG_WIN_FONT, MSG_WIN_CFONT);
     p_cur_ui->mw_var.indicator_h_temp =
         MIN(p_cur_ui->mw_var.autonewline_need_h + 2 * MSG_WIN_FONT_MARGIN, MSG_WIN_H_MAX);
     mw->str_start_y = 0;                                               // 显示进度清零
@@ -85,8 +85,8 @@ void WouoUI_MsgWinPageShow(PageAddr page_addr) // 页面的展示函数
     p_cur_ui->mw_var.canvas.h = p_cur_ui->indicator.h.pos_cur - 2 * MSG_WIN_FONT_MARGIN;
     p_cur_ui->mw_var.canvas.w = p_cur_ui->indicator.w.pos_cur - 2 * MSG_WIN_FONT_MARGIN;
     if (NULL != mw->content)
-        WouoUI_CanvasDrawStrAutoNewline(&(p_cur_ui->mw_var.canvas), 0, mw->str_start_y,
-                                        MSG_WIN_FONT, (uint8_t*)mw->content);
+        WouoUI_CanvasDrawStrAutoNewlineEx(&(p_cur_ui->mw_var.canvas), 0, mw->str_start_y,
+                                          MSG_WIN_FONT, MSG_WIN_CFONT, (uint8_t*)mw->content);
 }
 bool WouoUI_MsgWinPageReact(
     PageAddr page_addr) // 页面的响应函数(返回值为True表示这个状态已经可以结束了，切换下一个状态)
@@ -116,7 +116,7 @@ bool WouoUI_MsgWinPageReact(
             mw->page.cb(&(mw->page), msg); // 任何输入的有效信息都会调用回调函数
     } else {
         if (msg_none != msg && NULL != mw->page.cb) { // 任何输入的有效信息都会调用回调函数
-            ret = mw->page.cb(&(mw->page), msg); // 返回ture表示退出这个页面
+            ret = mw->page.cb(&(mw->page), msg);      // 返回ture表示退出这个页面
             if (ret)
                 WouoUI_PageReturn(page_addr);
         }
@@ -128,7 +128,7 @@ void WouoUI_MsgWinPageIndicatorCtrl(PageAddr page_addr) // 页面与UI指示器�
     MsgWin* mw = (MsgWin*)page_addr;
     p_cur_ui->indicator.w.pos_tgt = MSG_WIN_W;
     if (NULL == mw->content)
-        p_cur_ui->indicator.h.pos_tgt = GET_FNOT_H(MSG_WIN_FONT); // 文本为空的话，弹窗高度为单字符
+        p_cur_ui->indicator.h.pos_tgt = MSG_WIN_FONT_H; // 文本为空的话，弹窗高度为单字符
     else {
         p_cur_ui->indicator.h.pos_tgt = p_cur_ui->mw_var.indicator_h_temp;
     }
@@ -193,24 +193,26 @@ static void _WouoUI_ConfWinPageDraw(ConfWin* cw) {
         p_cur_ui->cw_var.canvas.h + CONF_WIN_BTN_H + 2 * CONF_WIN_FONT_MARGIN + CONF_TEXT_BTN_S,
         CONF_WIN_R);
     if (NULL != cw->content) // 绘制提示文本
-        WouoUI_CanvasDrawStrAutoNewline(&(p_cur_ui->cw_var.canvas), 0, cw->str_start_y,
-                                        CONF_WIN_FONT, (uint8_t*)cw->content);
+        WouoUI_CanvasDrawStrAutoNewlineEx(&(p_cur_ui->cw_var.canvas), 0, cw->str_start_y,
+                                          CONF_WIN_FONT, CONF_WIN_CFONT, (uint8_t*)cw->content);
     p_cur_ui->cw_var.btn_ss.canvas.start_y =
         p_cur_ui->cw_var.canvas.start_y + p_cur_ui->cw_var.canvas.h + CONF_TEXT_BTN_S;
-    WouoUI_CanvasDrawSlideStr(&(p_cur_ui->cw_var.btn_ss), CONF_WIN_IND_BTN_S,
-                              CONF_WIN_FONT); // 绘制选中项文本
+    WouoUI_CanvasDrawSlideStrEx(&(p_cur_ui->cw_var.btn_ss), CONF_WIN_IND_BTN_S, CONF_WIN_FONT,
+                                CONF_WIN_CFONT); // 绘制选中项文本
     // 绘制另一个选项
     temp_canvas = p_cur_ui->cw_var.btn_ss.canvas;
     if (cw->conf_ret) { // 选中左边，绘制右边
-        temp_canvas.w = MIN(WouoUI_GetStrWidth(cw->str_right, CONF_WIN_FONT), CONF_BTN_MAX_W);
+        temp_canvas.w =
+            MIN(WouoUI_GetStrWidthEx(cw->str_right, CONF_WIN_FONT, CONF_WIN_CFONT), CONF_BTN_MAX_W);
         temp_canvas.start_x = WOUOUI_MIDDLE_H + (CONF_WIN_W >> 2) - (temp_canvas.w >> 1);
-        WouoUI_CanvasDrawStr(&temp_canvas, 0, CONF_WIN_IND_BTN_S, CONF_WIN_FONT,
-                             (uint8_t*)(cw->str_right));
+        WouoUI_CanvasDrawTextEx(&temp_canvas, 0, CONF_WIN_IND_BTN_S, CONF_WIN_FONT, CONF_WIN_CFONT,
+                                (uint8_t*)(cw->str_right));
     } else {
-        temp_canvas.w = MIN(WouoUI_GetStrWidth(cw->str_left, CONF_WIN_FONT), CONF_BTN_MAX_W);
+        temp_canvas.w =
+            MIN(WouoUI_GetStrWidthEx(cw->str_left, CONF_WIN_FONT, CONF_WIN_CFONT), CONF_BTN_MAX_W);
         temp_canvas.start_x = CONF_WIN_HORIZON_S + (CONF_WIN_W >> 2) - (temp_canvas.w >> 1);
-        WouoUI_CanvasDrawStr(&temp_canvas, 0, CONF_WIN_IND_BTN_S, CONF_WIN_FONT,
-                             (uint8_t*)(cw->str_left));
+        WouoUI_CanvasDrawTextEx(&temp_canvas, 0, CONF_WIN_IND_BTN_S, CONF_WIN_FONT, CONF_WIN_CFONT,
+                                (uint8_t*)(cw->str_left));
     }
 }
 
@@ -241,7 +243,7 @@ void WouoUI_ConfWinPageInParaInit(PageAddr page_addr) {
                 cw->content = cw->bg_opt->content; // 取出选中项的内容
             else if (NULL != cw->bg_opt->text)
                 cw->content = cw->bg_opt->text; // 如果选中项没有内容文本，显示标题文本
-            cw->conf_ret = cw->bg_opt->val; // 获取背景页面选中项的选中与否
+            cw->conf_ret = cw->bg_opt->val;     // 获取背景页面选中项的选中与否
         }
     } else { // 如果没有使能自动获取，且自己还没有设置的话
         if (NULL == cw->content)
@@ -250,11 +252,11 @@ void WouoUI_ConfWinPageInParaInit(PageAddr page_addr) {
     cw->str_start_y = 0; // 显示进度清零
     // 计算文本框高度
     if (NULL != cw->content)
-        p_cur_ui->cw_var.autonewline_need_h = WouoUI_GetStrHeightAutoNewLine(
-            CONF_WIN_W - 2 * CONF_WIN_FONT_MARGIN, cw->content, CONF_WIN_FONT);
+        p_cur_ui->cw_var.autonewline_need_h = WouoUI_GetStrHeightAutoNewLineEx(
+            CONF_WIN_W - 2 * CONF_WIN_FONT_MARGIN, cw->content, CONF_WIN_FONT, CONF_WIN_CFONT);
     else
         p_cur_ui->cw_var.autonewline_need_h =
-            GET_FNOT_H(CONF_WIN_FONT); // 如果是NULL的话，文本框高度为单字符高度
+            CONF_WIN_FONT_H; // 如果是NULL的话，文本框高度为单字符高度
     p_cur_ui->cw_var.canvas.h =
         MIN(p_cur_ui->cw_var.autonewline_need_h,
             CONF_WIN_H_MAX - 2 * CONF_WIN_FONT_MARGIN - CONF_WIN_BTN_H - CONF_TEXT_BTN_S);
@@ -264,13 +266,13 @@ void WouoUI_ConfWinPageInParaInit(PageAddr page_addr) {
     if (cw->conf_ret) {
         p_cur_ui->cw_var.btn_ss.str = cw->str_left;
         p_cur_ui->cw_var.btn_ss.canvas.w =
-            MIN(WouoUI_GetStrWidth(cw->str_left, CONF_WIN_FONT), CONF_BTN_MAX_W);
+            MIN(WouoUI_GetStrWidthEx(cw->str_left, CONF_WIN_FONT, CONF_WIN_CFONT), CONF_BTN_MAX_W);
         p_cur_ui->cw_var.btn_ss.canvas.start_x =
             CONF_WIN_HORIZON_S + (CONF_WIN_W >> 2) - (p_cur_ui->cw_var.btn_ss.canvas.w >> 1);
     } else {
         p_cur_ui->cw_var.btn_ss.str = cw->str_right;
         p_cur_ui->cw_var.btn_ss.canvas.w =
-            MIN(WouoUI_GetStrWidth(cw->str_right, CONF_WIN_FONT), CONF_BTN_MAX_W);
+            MIN(WouoUI_GetStrWidthEx(cw->str_right, CONF_WIN_FONT, CONF_WIN_CFONT), CONF_BTN_MAX_W);
         p_cur_ui->cw_var.btn_ss.canvas.start_x =
             WOUOUI_MIDDLE_H + (CONF_WIN_W >> 2) - (p_cur_ui->cw_var.btn_ss.canvas.w >> 1);
     }
@@ -369,7 +371,7 @@ void WouoUI_ConfWinPageInit(ConfWin* cw,     // 确认弹窗对象指针
                             char* content,   // 显示的文本内容
                             char* str_left,  // 左按键的文本
                             char* str_right, // 右按键的文本
-                            bool conf_ret, // 确认弹窗结果的初始值(如果下面两个使能，这个无效)
+                            bool conf_ret,   // 确认弹窗结果的初始值(如果下面两个使能，这个无效)
                             bool auto_get_bg_opt, // 是否自动获取背景菜单页面中的文本
                             bool auto_set_bg_opt, // 是否自动赋值背景菜单页面中的文本
                             uint16_t move_step,   // 文本移动时的调整步长
@@ -418,13 +420,13 @@ void WouoUI_ConfWinPageToggleBtn(ConfWin* cw) {
     if (cw->conf_ret) {
         p_cur_ui->cw_var.btn_ss.str = cw->str_left;
         p_cur_ui->cw_var.btn_ss.canvas.w =
-            MIN(WouoUI_GetStrWidth(cw->str_left, CONF_WIN_FONT), CONF_BTN_MAX_W);
+            MIN(WouoUI_GetStrWidthEx(cw->str_left, CONF_WIN_FONT, CONF_WIN_CFONT), CONF_BTN_MAX_W);
         p_cur_ui->cw_var.btn_ss.canvas.start_x =
             CONF_WIN_HORIZON_S + (CONF_WIN_W >> 2) - (p_cur_ui->cw_var.btn_ss.canvas.w >> 1);
     } else {
         p_cur_ui->cw_var.btn_ss.str = cw->str_right;
         p_cur_ui->cw_var.btn_ss.canvas.w =
-            MIN(WouoUI_GetStrWidth(cw->str_right, CONF_WIN_FONT), CONF_BTN_MAX_W);
+            MIN(WouoUI_GetStrWidthEx(cw->str_right, CONF_WIN_FONT, CONF_WIN_CFONT), CONF_BTN_MAX_W);
         p_cur_ui->cw_var.btn_ss.canvas.start_x =
             WOUOUI_MIDDLE_H + (CONF_WIN_W >> 2) - (p_cur_ui->cw_var.btn_ss.canvas.w >> 1);
     }
@@ -446,12 +448,12 @@ static void _WouoUI_ValWinPageDraw(ValWin* vw) {
     p_cur_ui->vw_var.text_ss.canvas.start_y = p_cur_ui->vw_var.win_y.pos_cur + VAL_WIN_TXTVAL_Y_OFS;
     p_cur_ui->vw_var.text_ss.canvas.h = VAL_WIN_TXTVAL_H;
     p_cur_ui->vw_var.text_ss.str = vw->text;
-    p_cur_ui->vw_var.text_ss.canvas.w = WouoUI_GetStrWidth(vw->text, VAL_WIN_FONT);
+    p_cur_ui->vw_var.text_ss.canvas.w = WouoUI_GetStrWidthEx(vw->text, VAL_WIN_FONT, VAL_WIN_CFONT);
     // 绘制数值
     p_cur_ui->vw_var.val_ss.canvas = p_cur_ui->vw_var.text_ss.canvas;
     ui_itoa_str(vw->val, str_buff);
     p_cur_ui->vw_var.val_ss.str = str_buff;
-    p_cur_ui->vw_var.val_ss.canvas.w = WouoUI_GetStrWidth(str_buff, VAL_WIN_FONT);
+    p_cur_ui->vw_var.val_ss.canvas.w = WouoUI_GetStrWidthEx(str_buff, VAL_WIN_FONT, VAL_WIN_CFONT);
     if (p_cur_ui->vw_var.val_ss.canvas.w + p_cur_ui->vw_var.text_ss.canvas.w + VAL_WIN_TXTVAL_S >
         VAL_WIN_W - 2 * VAL_WIN_FONT_MARGIN) {
         // 放不下的话按设置允许的最大长度来
@@ -468,27 +470,27 @@ static void _WouoUI_ValWinPageDraw(ValWin* vw) {
     // 值靠右放
     p_cur_ui->vw_var.val_ss.canvas.start_x =
         VAL_WIN_X + VAL_WIN_W - VAL_WIN_FONT_MARGIN - p_cur_ui->vw_var.val_ss.canvas.w;
-    WouoUI_CanvasDrawSlideStr(&(p_cur_ui->vw_var.text_ss), 0, VAL_WIN_FONT);
-    WouoUI_CanvasDrawSlideStr(&(p_cur_ui->vw_var.val_ss), 0, VAL_WIN_FONT);
+    WouoUI_CanvasDrawSlideStrEx(&(p_cur_ui->vw_var.text_ss), 0, VAL_WIN_FONT, VAL_WIN_CFONT);
+    WouoUI_CanvasDrawSlideStrEx(&(p_cur_ui->vw_var.val_ss), 0, VAL_WIN_FONT, VAL_WIN_CFONT);
     // 绘制最大最小值
     p_cur_ui->vw_var.min_ss.canvas.start_y = p_cur_ui->vw_var.win_y.pos_cur + VAL_WIN_MMVAL_Y_OFS;
     p_cur_ui->vw_var.min_ss.canvas.h = VAL_WIN_MMVAL_H;
     ui_itoa_str(vw->min, str_buff);
     p_cur_ui->vw_var.min_ss.str = str_buff;
     p_cur_ui->vw_var.min_ss.canvas.w =
-        MIN(WouoUI_GetStrWidth(str_buff, VAL_WIN_FONT), VAL_WIN_MMVAL_W_MAX);
+        MIN(WouoUI_GetStrWidthEx(str_buff, VAL_WIN_FONT, VAL_WIN_CFONT), VAL_WIN_MMVAL_W_MAX);
     p_cur_ui->vw_var.min_ss.canvas.start_x =
         VAL_WIN_TXTVAL_X + (VAL_WIN_MMVAL_W_MAX >> 1) - (p_cur_ui->vw_var.min_ss.canvas.w >> 1);
-    WouoUI_CanvasDrawSlideStr(&(p_cur_ui->vw_var.min_ss), 0, VAL_WIN_FONT);
+    WouoUI_CanvasDrawSlideStrEx(&(p_cur_ui->vw_var.min_ss), 0, VAL_WIN_FONT, VAL_WIN_CFONT);
     p_cur_ui->vw_var.max_ss.canvas = p_cur_ui->vw_var.min_ss.canvas;
     ui_itoa_str(vw->max, str_buff);
     p_cur_ui->vw_var.max_ss.str = str_buff;
     p_cur_ui->vw_var.max_ss.canvas.w =
-        MIN(WouoUI_GetStrWidth(str_buff, VAL_WIN_FONT), VAL_WIN_MMVAL_W_MAX);
+        MIN(WouoUI_GetStrWidthEx(str_buff, VAL_WIN_FONT, VAL_WIN_CFONT), VAL_WIN_MMVAL_W_MAX);
     p_cur_ui->vw_var.max_ss.canvas.start_x = VAL_WIN_X + VAL_WIN_W - VAL_WIN_FONT_MARGIN -
                                              (VAL_WIN_MMVAL_W_MAX >> 1) -
                                              (p_cur_ui->vw_var.max_ss.canvas.w >> 1);
-    WouoUI_CanvasDrawSlideStr(&(p_cur_ui->vw_var.max_ss), 0, VAL_WIN_FONT);
+    WouoUI_CanvasDrawSlideStrEx(&(p_cur_ui->vw_var.max_ss), 0, VAL_WIN_FONT, VAL_WIN_CFONT);
 }
 
 bool WouoUI_ValWinPageIn(PageAddr page_addr) {
@@ -635,9 +637,9 @@ void WouoUI_ValWinPageSetMinStepMax(ValWin* vw, int32_t min, int32_t step, int32
     vw->max = MAX(min, max);
     vw->step = ABS(step);
 }
-void WouoUI_ValWinPageInit(ValWin* vw, // 数值弹窗对象指针
-                           char* text, // 显示的文本内容(如)
-                           int32_t init_val, // 数值弹窗结果的初始值(如果下面两个使能，这个无效)
+void WouoUI_ValWinPageInit(ValWin* vw,           // 数值弹窗对象指针
+                           char* text,           // 显示的文本内容(如)
+                           int32_t init_val,     // 数值弹窗结果的初始值(如果下面两个使能，这个无效)
                            int32_t min,          // 弹窗页面的最小值限制
                            int32_t max,          // 弹窗页面的最大值限制
                            int32_t step,         // 弹窗页面滑动条的增减步长
@@ -682,37 +684,42 @@ static void _WouoUI_SpinWinPageDraw(SpinWin* spw) {
     WouoUI_CanvasDrawRBoxEmpty(&(p_cur_ui->w_all), SPIN_WIN_X, p_cur_ui->spw_var.win_y.pos_cur,
                                SPIN_WIN_W, SPIN_WIN_H, SPIN_WIN_R);
     // 提示文本跳过“% ”
-    p_cur_ui->spw_var.text_ss.canvas.h = GET_FNOT_H(SPIN_WIN_FONT);
+    p_cur_ui->spw_var.text_ss.canvas.h = SPIN_WIN_FONT_H;
     p_cur_ui->spw_var.text_ss.canvas.start_y =
         p_cur_ui->spw_var.win_y.pos_cur + SPIN_WIN_FONT_MARGIN;
     p_cur_ui->spw_var.text_ss.canvas.w =
-        MIN(WouoUI_GetStrWidth(spw->text, SPIN_WIN_FONT), SPIN_WIN_W - 2 * SPIN_WIN_FONT_MARGIN);
+        MIN(WouoUI_GetStrWidthEx(spw->text, SPIN_WIN_FONT, SPIN_WIN_CFONT),
+            SPIN_WIN_W - 2 * SPIN_WIN_FONT_MARGIN);
     p_cur_ui->spw_var.text_ss.canvas.start_x =
         WOUOUI_MIDDLE_H - (p_cur_ui->spw_var.text_ss.canvas.w >> 1);
     p_cur_ui->spw_var.text_ss.str = spw->text;
-    WouoUI_CanvasDrawSlideStr(&(p_cur_ui->spw_var.text_ss), 0, SPIN_WIN_FONT);
+    WouoUI_CanvasDrawSlideStrEx(&(p_cur_ui->spw_var.text_ss), 0, SPIN_WIN_FONT, SPIN_WIN_CFONT);
     // 绘制value range
-    p_cur_ui->spw_var.min_ss.canvas.h = GET_FNOT_H(SPIN_WIN_NUM_FONT);
+    p_cur_ui->spw_var.min_ss.canvas.h = SPIN_WIN_NUM_FONT_H;
     p_cur_ui->spw_var.min_ss.canvas.start_y =
         p_cur_ui->spw_var.win_y.pos_cur + SPIN_WIN_MMVAL_Y_OFS;
     ui_ftoa_g_str(spw->min, spw->dec_num, temp_str_buff);
     p_cur_ui->spw_var.min_ss.str = temp_str_buff;
     p_cur_ui->spw_var.min_ss.canvas.w =
-        MIN(WouoUI_GetStrWidth(temp_str_buff, SPIN_WIN_NUM_FONT), SPIN_WIN_MIN_W_MAX);
+        MIN(WouoUI_GetStrWidthEx(temp_str_buff, SPIN_WIN_NUM_FONT, SPIN_WIN_NUM_CFONT),
+            SPIN_WIN_MIN_W_MAX);
     p_cur_ui->spw_var.min_ss.canvas.start_x = SPIN_WIN_MMVAL_MID_LX - SPIN_WIN_MMVAL_S -
                                               p_cur_ui->spw_var.min_ss.canvas.w; // 靠近中间放置
     WouoUI_CanvasDrawASCII(&(p_cur_ui->w_all), SPIN_WIN_MMVAL_MID_LX,
                            p_cur_ui->spw_var.min_ss.canvas.start_y, SPIN_WIN_NUM_FONT,
                            '~'); // 绘制最大最小值间的字符(居中)
-    WouoUI_CanvasDrawSlideStr(&(p_cur_ui->spw_var.min_ss), 0, SPIN_WIN_NUM_FONT);
+    WouoUI_CanvasDrawSlideStrEx(&(p_cur_ui->spw_var.min_ss), 0, SPIN_WIN_NUM_FONT,
+                                SPIN_WIN_NUM_CFONT);
     p_cur_ui->spw_var.max_ss.canvas = p_cur_ui->spw_var.min_ss.canvas;
     ui_ftoa_g_str(spw->max, spw->dec_num, temp_str_buff);
     p_cur_ui->spw_var.max_ss.str = temp_str_buff;
     p_cur_ui->spw_var.max_ss.canvas.w =
-        MIN(WouoUI_GetStrWidth(temp_str_buff, SPIN_WIN_NUM_FONT), SPIN_WIN_MAX_W_MAX);
+        MIN(WouoUI_GetStrWidthEx(temp_str_buff, SPIN_WIN_NUM_FONT, SPIN_WIN_NUM_CFONT),
+            SPIN_WIN_MAX_W_MAX);
     p_cur_ui->spw_var.max_ss.canvas.start_x =
         SPIN_WIN_MMVAL_MID_RX + SPIN_WIN_MMVAL_S; // 靠近中间放置
-    WouoUI_CanvasDrawSlideStr(&(p_cur_ui->spw_var.max_ss), 0, SPIN_WIN_NUM_FONT);
+    WouoUI_CanvasDrawSlideStrEx(&(p_cur_ui->spw_var.max_ss), 0, SPIN_WIN_NUM_FONT,
+                                SPIN_WIN_NUM_CFONT);
     // decimal point
     num_x = (WOUOUI_BUFF_WIDTH - p_cur_ui->spw_var.num_w_temp) >> 1;
     if (DecimalNum_0 != spw->dec_num) // 需要显示小数点
@@ -766,7 +773,7 @@ void WouoUI_SpinWinPageInParaInit(PageAddr page_addr) {
             if (NULL != spw->bg_opt->text)
                 spw->text = &(spw->bg_opt->text[2]); // 取出选中项文本，同时跳过提示文本
             spw->val = spw->bg_opt->val;             // 获取背景页面选中项的值
-            spw->dec_num = spw->bg_opt->decimalNum; // 获取选中项的定点位数
+            spw->dec_num = spw->bg_opt->decimalNum;  // 获取选中项的定点位数
             if (spw->val > spw->max) {
                 spw->val = spw->max;
                 WOUOUI_LOG_I("auto get val gt max");
@@ -873,21 +880,19 @@ void WouoUI_SpinWinPageIndicatorCtrl(PageAddr page_addr) {
     SpinWin* spw = (SpinWin*)page_addr;
     p_cur_ui->indicator.w.pos_tgt = GET_FNOT_W(SPIN_WIN_NUM_FONT) + (SPIN_WIN_NUM_S);
     if (spw->sel_bit < (int16_t)spw->dec_num)
-        p_cur_ui->indicator.x.pos_tgt = (WOUOUI_BUFF_WIDTH - p_cur_ui->spw_var.num_w_temp >> 1) +
+        p_cur_ui->indicator.x.pos_tgt = ((WOUOUI_BUFF_WIDTH - p_cur_ui->spw_var.num_w_temp) >> 1) +
                                         p_cur_ui->indicator.w.pos_tgt * (7 - spw->sel_bit) +
                                         GET_FNOT_W(SPIN_WIN_NUM_FONT) - SPIN_WIN_NUM_S -
                                         (SPIN_WIN_NUM_S >> 1);
     else
-        p_cur_ui->indicator.x.pos_tgt = (WOUOUI_BUFF_WIDTH - p_cur_ui->spw_var.num_w_temp >> 1) +
+        p_cur_ui->indicator.x.pos_tgt = ((WOUOUI_BUFF_WIDTH - p_cur_ui->spw_var.num_w_temp) >> 1) +
                                         p_cur_ui->indicator.w.pos_tgt * (7 - spw->sel_bit) -
                                         (SPIN_WIN_NUM_S >> 1);
     if (spw->sel_flag) {
         p_cur_ui->indicator.y.pos_tgt = SPIN_WIN_Y + SPIN_WIN_NUM_Y_OFS - (SPIN_WIN_V_S >> 1);
-        p_cur_ui->indicator.h.pos_tgt =
-            GET_FNOT_H(SPIN_WIN_NUM_FONT) + SPIN_WIN_BOX_H + (SPIN_WIN_V_S >> 1);
+        p_cur_ui->indicator.h.pos_tgt = SPIN_WIN_NUM_FONT_H + SPIN_WIN_BOX_H + (SPIN_WIN_V_S >> 1);
     } else {
-        p_cur_ui->indicator.y.pos_tgt =
-            SPIN_WIN_Y + SPIN_WIN_NUM_Y_OFS + GET_FNOT_H(SPIN_WIN_NUM_FONT);
+        p_cur_ui->indicator.y.pos_tgt = SPIN_WIN_Y + SPIN_WIN_NUM_Y_OFS + SPIN_WIN_NUM_FONT_H;
         p_cur_ui->indicator.h.pos_tgt = SPIN_WIN_BOX_H;
     }
     WouoUI_GraphSetPenColor(2); // 反色绘制
@@ -908,12 +913,12 @@ void WouoUI_SpinWinPageSetMinMaxDecimalnum(SpinWin* spw, int32_t min, int32_t ma
     spw->dec_num = decnum;
 }
 void WouoUI_SpinWinPageInit(
-    SpinWin* spw,     // 微调数值弹窗对象指针
-    char* text,       // 显示的文本内容(如果下面两个使能，这个无效)
-    int32_t init_val, // 微调数值弹窗结果的初始值(如果下面两个使能，这个无效)
-    DecimalNum dec_num, // 微调数值弹窗的定点位数(如果下面两个使能，这个无效)
-    int32_t min,        // 弹窗页面的最小值限制
-    int32_t max,        // 弹窗页面的最大值限制
+    SpinWin* spw,         // 微调数值弹窗对象指针
+    char* text,           // 显示的文本内容(如果下面两个使能，这个无效)
+    int32_t init_val,     // 微调数值弹窗结果的初始值(如果下面两个使能，这个无效)
+    DecimalNum dec_num,   // 微调数值弹窗的定点位数(如果下面两个使能，这个无效)
+    int32_t min,          // 弹窗页面的最小值限制
+    int32_t max,          // 弹窗页面的最大值限制
     bool auto_get_bg_opt, // 是否自动获取背景菜单页面中的文本
     bool auto_set_bg_opt, // 是否自动赋值背景菜单页面中的文本
     CallBackFunc cb) {
@@ -977,13 +982,14 @@ static void _WouoUI_listWinPageDraw(ListWin* lw) {
     for (uint8_t i = 0; i < lw->array_num; i++) {
         if (i != lw->sel_str_index) {
             canvas_temp.start_y = LIST_WIN_LINE_H * i + (p_cur_ui->lw_var.list_y.pos_cur);
-            WouoUI_CanvasDrawStr(&canvas_temp, 0, LIST_WIN_TEXT_U_S, LIST_WIN_FONT,
-                                 (uint8_t*)(lw->str_array[i]));
+            WouoUI_CanvasDrawTextEx(&canvas_temp, 0, LIST_WIN_TEXT_U_S, LIST_WIN_FONT,
+                                    LIST_WIN_CFONT, (uint8_t*)(lw->str_array[i]));
         } else {
             p_cur_ui->lw_var.str_ss.str = lw->str_array[i];
             p_cur_ui->lw_var.str_ss.canvas.start_y =
                 LIST_WIN_LINE_H * i + (p_cur_ui->lw_var.list_y.pos_cur);
-            WouoUI_CanvasDrawSlideStr(&(p_cur_ui->lw_var.str_ss), LIST_WIN_TEXT_U_S, LIST_WIN_FONT);
+            WouoUI_CanvasDrawSlideStrEx(&(p_cur_ui->lw_var.str_ss), LIST_WIN_TEXT_U_S,
+                                        LIST_WIN_FONT, LIST_WIN_CFONT);
         }
     }
 }
@@ -1084,7 +1090,8 @@ void WouoUI_ListWinPageIndicatorCtrl(PageAddr page_addr) {
     p_cur_ui->indicator.x.pos_tgt = WOUOUI_BUFF_WIDTH - LIST_WIN_W + (LIST_WIN_L_S >> 1);
     p_cur_ui->indicator.y.pos_tgt = p_cur_ui->lw_var.ind_y_temp;
     p_cur_ui->indicator.w.pos_tgt =
-        MIN(WouoUI_GetStrWidth(lw->str_array[lw->sel_str_index], LIST_WIN_FONT) + LIST_WIN_L_S,
+        MIN(WouoUI_GetStrWidthEx(lw->str_array[lw->sel_str_index], LIST_WIN_FONT, LIST_WIN_CFONT) +
+                LIST_WIN_L_S,
             LIST_WIN_W - LIST_WIN_L_S - LIST_WIN_R_S);
     p_cur_ui->indicator.h.pos_tgt = LIST_WIN_LINE_H;
     WouoUI_GraphSetPenColor(2); // 反色绘制

@@ -60,8 +60,8 @@ void WouoUI_TitlePageInParaInit(PageAddr page_addr) {
     p_cur_ui->tp_var.titleY.pos_cur = WOUOUI_BUFF_HEIGHT;
     // 以下这部分变量在IN中也不会改变，可以放到Init初始化中去
     p_cur_ui->tp_var.titleY.pos_tgt =
-        TILE_BAR_U + (TILE_BAR_H - TILE_B_TITLE_FONT.Height) / 2; // 字体在磁贴中自动居中
-    p_cur_ui->tp_var.title_ss.canvas.h = GET_FNOT_H(TILE_B_TITLE_FONT);
+        TILE_BAR_U + (TILE_BAR_H - TILE_B_TITLE_FONT_H) / 2; // 字体在磁贴中自动居中
+    p_cur_ui->tp_var.title_ss.canvas.h = TILE_B_TITLE_FONT_H;
     p_cur_ui->tp_var.title_ss.slide_mode = p_cur_ui->upara->slidestrmode_param[TILE_SSS];
     p_cur_ui->tp_var.title_ss.step = p_cur_ui->upara->slidestrstep_param[TILE_SSS];
     WouoUI_CanvasSlideStrReset(&(p_cur_ui->tp_var.title_ss));
@@ -82,10 +82,11 @@ bool WouoUI_TitlePageIn(PageAddr page_addr) {
     // 绘制title
     String show_str = tp->option_array[tp->select_item].text;
     int16_t start_x =
-        MAX(WOUOUI_MIDDLE_H - WouoUI_GetStrWidth(&(show_str[2]), TILE_B_TITLE_FONT) / 2,
+        MAX(WOUOUI_MIDDLE_H -
+                WouoUI_GetStrWidthEx(&(show_str[2]), TILE_B_TITLE_FONT, TILE_B_TITLE_CFONT) / 2,
             TILE_BAR_W); // 字符串起始位置最左侧只能是BAR的位置
-    WouoUI_CanvasDrawStr(&(p_cur_ui->w_all), start_x, p_cur_ui->tp_var.titleY.pos_cur,
-                         TILE_B_TITLE_FONT, (uint8_t*)&(show_str[2]));
+    WouoUI_CanvasDrawTextEx(&(p_cur_ui->w_all), start_x, p_cur_ui->tp_var.titleY.pos_cur,
+                            TILE_B_TITLE_FONT, TILE_B_TITLE_CFONT, (uint8_t*)&(show_str[2]));
     // 绘制装饰条
     WouoUI_CanvasDrawRBox(&(p_cur_ui->w_all), p_cur_ui->tp_var.barX.pos_cur, TILE_BAR_U, TILE_BAR_W,
                           TILE_BAR_H, 0);
@@ -118,12 +119,14 @@ void WouoUI_TitlePageShow(PageAddr page_addr) {
     // 绘制title
     String show_str = tp->option_array[tp->select_item].text;
     int16_t start_x =
-        MAX(WOUOUI_MIDDLE_H - WouoUI_GetStrWidth(&(show_str[2]), TILE_B_TITLE_FONT) / 2,
+        MAX(WOUOUI_MIDDLE_H -
+                WouoUI_GetStrWidthEx(&(show_str[2]), TILE_B_TITLE_FONT, TILE_B_TITLE_CFONT) / 2,
             TILE_BAR_W); // 字符串起始位置最左侧只能是BAR的位置
     p_cur_ui->tp_var.title_ss.str = &(show_str[2]);
     p_cur_ui->tp_var.title_ss.canvas.start_x = start_x;
     p_cur_ui->tp_var.title_ss.canvas.start_y = p_cur_ui->tp_var.titleY.pos_cur;
-    WouoUI_CanvasDrawSlideStr(&(p_cur_ui->tp_var.title_ss), 0, TILE_B_TITLE_FONT);
+    WouoUI_CanvasDrawSlideStrEx(&(p_cur_ui->tp_var.title_ss), 0, TILE_B_TITLE_FONT,
+                                TILE_B_TITLE_CFONT);
     if (p_cur_ui->anim_is_finish &&
         !(p_cur_ui->tp_var.title_ss.slide_is_finish)) { // anim结束，且单次滚动没有完成就使能滚动
         p_cur_ui->tp_var.title_ss.slide_enable = true;
@@ -147,7 +150,7 @@ void WouoUI_TitlePageIndicatorCtrl(PageAddr page_addr) {
     p_cur_ui->indicator.y.pos_tgt = TILE_ICON_U - TILE_ICON_IND_U;
     p_cur_ui->indicator.w.pos_tgt = TILE_ICON_IND_W;
     p_cur_ui->indicator.h.pos_tgt =
-        TILE_ICON_IND_H; // 目标值的这部分赋值应该放在InParaInti中或者ShowInit中更合适
+        TILE_ICON_IND_H;        // 目标值的这部分赋值应该放在InParaInti中或者ShowInit中更合适
     WouoUI_GraphSetPenColor(2); // 反色绘制
     WouoUI_CanvasDrawBoxRightAngle(&(p_cur_ui->w_all), p_cur_ui->indicator.x.pos_cur,
                                    p_cur_ui->indicator.y.pos_cur, p_cur_ui->indicator.w.pos_cur,
@@ -229,8 +232,8 @@ void WouoUI_TitlePageLastItem(TitlePage* tp) {
         tp->select_item--;
         p_cur_ui->tp_var.iconX.pos_tgt += TILE_ICON_S;
         p_cur_ui->indicator.x.pos_cur +=
-            (TILE_ICON_W >> 1); // 图标移动时从上一个中心移动到这一次的边角
-    } else {                    // 是第一个选项
+            (TILE_ICON_W >> 1);                     // 图标移动时从上一个中心移动到这一次的边角
+    } else {                                        // 是第一个选项
         if (p_cur_ui->upara->loop_param[TILE_LOOP]) // 开启循环的话
         {
             tp->select_item = tp->item_num - 1;
@@ -261,8 +264,9 @@ void WouoUI_TItlePageNextItem(TitlePage* tp) {
 static void WouoUI_ListAuotCanvasDrawLineTailValTxt(
     Option* item, Canvas* p_canvas_txt, Canvas* p_canvas_val, char* val_buff,
     uint8_t select_order) { // 这个函数纯粹因为用的次数多，分离出来的，没有什么特殊作用
-    int16_t val_str_len = (int16_t)WouoUI_GetStrWidth(val_buff, LIST_TEXT_FONT);
-    int16_t txt_str_len = (int16_t)WouoUI_GetStrWidth(item->text, LIST_TEXT_FONT);
+    int16_t val_str_len = (int16_t)WouoUI_GetStrWidthEx(val_buff, LIST_TEXT_FONT, LIST_TEXT_CFONT);
+    int16_t txt_str_len =
+        (int16_t)WouoUI_GetStrWidthEx(item->text, LIST_TEXT_FONT, LIST_TEXT_CFONT);
     if (txt_str_len + LIST_TEXT_L_S * 2 + LIST_TEXT_R_S + val_str_len + LIST_IND_VAL_S <
         WOUOUI_BUFF_WIDTH) {
         // 两个字符串的宽度之和不超过屏幕宽度，则按长短调整
@@ -280,24 +284,26 @@ static void WouoUI_ListAuotCanvasDrawLineTailValTxt(
     if (item->order == select_order) {
         p_cur_ui->lp_var.opt_val_ss.canvas = *p_canvas_val;
         p_cur_ui->lp_var.opt_val_ss.str = val_buff;
-        WouoUI_CanvasDrawSlideStr(&(p_cur_ui->lp_var.opt_val_ss), 0, LIST_TEXT_FONT);
+        WouoUI_CanvasDrawSlideStrEx(&(p_cur_ui->lp_var.opt_val_ss), 0, LIST_TEXT_FONT,
+                                    LIST_TEXT_CFONT);
         if (p_cur_ui->anim_is_finish && !(p_cur_ui->lp_var.opt_val_ss.slide_is_finish)) {
             p_cur_ui->lp_var.opt_val_ss.slide_enable =
                 true; // anim结束，且单次滚动没有完成就使能滚动
         }
     } else
-        WouoUI_CanvasDrawStr(p_canvas_val, 0, 0, LIST_TEXT_FONT, (uint8_t*)val_buff);
+        WouoUI_CanvasDrawTextEx(p_canvas_val, 0, 0, LIST_TEXT_FONT, LIST_TEXT_CFONT,
+                                (uint8_t*)val_buff);
 }
 
 static void WouoUI_ListDrawText_CheckBox(int16_t start_y, Option* item, uint8_t select_order) {
     Canvas canvas_txt = {.start_x = LIST_TEXT_L_S,
                          .start_y = (int16_t)(start_y + LIST_TEXT_U_S),
                          .w = LIST_TEXT_MAX_LEN,
-                         .h = (int16_t)(LIST_TEXT_FONT.Height)};
+                         .h = (int16_t)(LIST_TEXT_FONT_H)};
     Canvas canvas_val = {.start_x = LIST_TEXT_L_S * 2 + LIST_TEXT_MAX_LEN + LIST_IND_VAL_S,
                          .start_y = (int16_t)(start_y + LIST_TEXT_U_S),
                          .w = LIST_VAL_MAX_LEN,
-                         .h = (int16_t)(LIST_TEXT_FONT.Height)};
+                         .h = (int16_t)(LIST_TEXT_FONT_H)};
     // 绘制表尾
     char val_buff[LIST_VAL_BUFF_SIZE];
     if (NULL != strchr(LIST_LINETAIL_VAL_PREFIX, item->text[0])) {
@@ -310,7 +316,7 @@ static void WouoUI_ListDrawText_CheckBox(int16_t start_y, Option* item, uint8_t 
                                                 select_order);
     } else if (NULL != strchr(LIST_LINETAIL_CONF_PREFIX,
                               item->text[0])) { // 如果是二值选框// 如果是二值确认弹窗
-        canvas_txt.w = MIN(WouoUI_GetStrWidth(item->text, LIST_TEXT_FONT),
+        canvas_txt.w = MIN(WouoUI_GetStrWidthEx(item->text, LIST_TEXT_FONT, LIST_TEXT_CFONT),
                            WOUOUI_BUFF_WIDTH - CHECK_BOX_R_S - CHECK_BOX_F_W - LIST_TEXT_L_S * 2 -
                                LIST_IND_VAL_S); // 除确认框外的宽度，其他都算在文字宽度中
         WouoUI_CanvasDrawRBoxEmpty(
@@ -328,7 +334,7 @@ static void WouoUI_ListDrawText_CheckBox(int16_t start_y, Option* item, uint8_t 
                                                     select_order);
         }
     } else
-        canvas_txt.w = MIN(WouoUI_GetStrWidth(item->text, LIST_TEXT_FONT),
+        canvas_txt.w = MIN(WouoUI_GetStrWidthEx(item->text, LIST_TEXT_FONT, LIST_TEXT_CFONT),
                            WOUOUI_BUFF_WIDTH - LIST_TEXT_R_S - LIST_TEXT_L_S * 2);
     // 绘制文字
     if (item->order == select_order) {
@@ -340,13 +346,15 @@ static void WouoUI_ListDrawText_CheckBox(int16_t start_y, Option* item, uint8_t 
         canvas_txt.w -= LIST_TEXT_FONT.Width * 2; // 去掉前面标识符的长度
         p_cur_ui->lp_var.opt_text_ss.canvas = canvas_txt;
         p_cur_ui->lp_var.opt_text_ss.str = &(item->text[2]);
-        WouoUI_CanvasDrawSlideStr(&(p_cur_ui->lp_var.opt_text_ss), 0, LIST_TEXT_FONT);
+        WouoUI_CanvasDrawSlideStrEx(&(p_cur_ui->lp_var.opt_text_ss), 0, LIST_TEXT_FONT,
+                                    LIST_TEXT_CFONT);
         if (p_cur_ui->anim_is_finish && !(p_cur_ui->lp_var.opt_text_ss.slide_is_finish)) {
             p_cur_ui->lp_var.opt_text_ss.slide_enable =
                 true; // anim结束，且单次滚动没有完成就使能滚动
         }
     } else
-        WouoUI_CanvasDrawStr(&(canvas_txt), 0, 0, LIST_TEXT_FONT, (uint8_t*)(item->text));
+        WouoUI_CanvasDrawTextEx(&(canvas_txt), 0, 0, LIST_TEXT_FONT, LIST_TEXT_CFONT,
+                                (uint8_t*)(item->text));
 }
 
 void WouoUI_ListPageInParaInit(PageAddr page_addr) {
@@ -366,7 +374,7 @@ void WouoUI_ListPageInParaInit(PageAddr page_addr) {
 bool WouoUI_ListPageIn(PageAddr page_addr) {
     bool ret = false; // 默认动画没有完成
     ListPage* lp = (ListPage*)page_addr;
-    int16_t item_y = 0; // 用于临时存放列表每一项的y坐标
+    int16_t item_y = 0;                      // 用于临时存放列表每一项的y坐标
     const uint8_t list_line_h = LIST_LINE_H; // 因为行高是用宏计算的，这里用变量保存不用每次都计算
     WouoUI_Animation(&p_cur_ui->lp_var.optInt, p_cur_ui->upara->ani_param[LIST_ANI], p_cur_ui->time,
                      &(p_cur_ui->anim_is_finish)); // 文字y坐标
@@ -389,7 +397,7 @@ bool WouoUI_ListPageIn(PageAddr page_addr) {
 
 void WouoUI_ListPageShow(PageAddr page_addr) {
     ListPage* lp = (ListPage*)page_addr;
-    int16_t item_y = 0; // 用于临时存放列表每一项的y坐标
+    int16_t item_y = 0;                      // 用于临时存放列表每一项的y坐标
     const uint8_t list_line_h = LIST_LINE_H; // 因为行高是用宏计算的，这里用变量保存不用每次都计算
     // 计算动画过渡值
     WouoUI_Animation(&p_cur_ui->lp_var.optInt, p_cur_ui->upara->ani_param[LIST_ANI], p_cur_ui->time,
@@ -476,7 +484,7 @@ bool WouoUI_ListPageReact(PageAddr page_addr) {
             lp->page.cb(&(lp->page), msg);
     } else {
         if (msg_none != msg && NULL != lp->page.cb) { // 任何输入的有效信息都会调用回调函数
-            ret = lp->page.cb(&(lp->page), msg); // 使用者在回调函数返回true,表示退出这个页面
+            ret = lp->page.cb(&(lp->page), msg);      // 使用者在回调函数返回true,表示退出这个页面
             if (ret == true)
                 WouoUI_PageReturn(page_addr);
         }
@@ -532,7 +540,7 @@ void WouoUI_ListPageLastItem(ListPage* lp) { // 重置动画参数
     WouoUI_CanvasSlideStrReset(&(p_cur_ui->lp_var.opt_text_ss));
     WouoUI_CanvasSlideStrReset(&(p_cur_ui->lp_var.opt_val_ss));
     const uint8_t list_line_h = LIST_LINE_H; // 因为行高是用宏计算的，这里用变量保存不用每次都计算
-    if (lp->select_item == 0) {                       // 选中第一个的话
+    if (lp->select_item == 0) {              // 选中第一个的话
         if (p_cur_ui->upara->loop_param[LIST_LOOP]) { // 同时loop参数开的话，从顶部滑动到底部
             lp->select_item = lp->item_num - 1;       // 选中最后一个
             if (lp->item_num > lp->line_n) {          // 数目超出一页的最大数目
@@ -773,36 +781,36 @@ void WouoUI_WavePageShow(PageAddr page_addr) {
     // 绘制Title字符串
     p_cur_ui->wt_var.title_ss.canvas.start_x = WAVE_STOP_SIG_HW + 2 + WAVE_TEXT_L_S;
     p_cur_ui->wt_var.title_ss.canvas.start_y = p_cur_ui->wt_var.text_y.pos_cur;
-    p_cur_ui->wt_var.title_ss.canvas.h = GET_FNOT_H(WAVE_FONT);
+    p_cur_ui->wt_var.title_ss.canvas.h = WAVE_FONT_H;
     p_cur_ui->wt_var.title_ss.canvas.w = WAVE_TEXT_W;
     p_cur_ui->wt_var.title_ss.str = wd->text;
-    WouoUI_CanvasDrawSlideStr(&(p_cur_ui->wt_var.title_ss), 0, WAVE_FONT);
+    WouoUI_CanvasDrawSlideStrEx(&(p_cur_ui->wt_var.title_ss), 0, WAVE_FONT, WAVE_CFONT);
     // 绘制下面的cur值
     p_cur_ui->wt_var.val_ss.str =
         ui_ftoa_g(wd->data[(wd->idx_show_tail + WAVE_DEPTH - 1) % WAVE_DEPTH], wd->decimal_num);
     p_cur_ui->wt_var.val_ss.canvas.w =
         WOUOUI_BUFF_WIDTH - WAVE_TEXT_L_S - WAVE_TEXT_R_S - WAVE_TEXT_W - WAVE_STOP_SIG_HW - 2;
-    p_cur_ui->wt_var.val_ss.canvas.h = GET_FNOT_H(WAVE_FONT);
+    p_cur_ui->wt_var.val_ss.canvas.h = WAVE_FONT_H;
     p_cur_ui->wt_var.val_ss.canvas.start_x =
         WAVE_TEXT_W + WAVE_STOP_SIG_HW + 2 + WAVE_TEXT_L_S + WAVE_TEXT_R_S;
     p_cur_ui->wt_var.val_ss.canvas.start_y = p_cur_ui->wt_var.text_y.pos_cur;
-    WouoUI_CanvasDrawSlideStr(&(p_cur_ui->wt_var.val_ss), 0, WAVE_FONT);
+    WouoUI_CanvasDrawSlideStrEx(&(p_cur_ui->wt_var.val_ss), 0, WAVE_FONT, WAVE_CFONT);
     // 绘制侧边的最大值和最小值和中间值
     p_cur_ui->wt_var.max_val_ss.canvas.start_x = p_cur_ui->wt_var.y_axis_val_x.pos_cur;
     p_cur_ui->wt_var.max_val_ss.canvas.start_y = WAVE_BOX_U_S;
-    p_cur_ui->wt_var.max_val_ss.canvas.h = GET_FNOT_H(WAVE_FONT);
+    p_cur_ui->wt_var.max_val_ss.canvas.h = WAVE_FONT_H;
     p_cur_ui->wt_var.max_val_ss.canvas.w = WAVE_Y_AXIS_LABEL_WIDTH;
     p_cur_ui->wt_var.max_val_ss.str = ui_ftoa_g(wd->rangeMax, wd->decimal_num);
-    WouoUI_CanvasDrawSlideStr(&(p_cur_ui->wt_var.max_val_ss), 0, WAVE_FONT);
+    WouoUI_CanvasDrawSlideStrEx(&(p_cur_ui->wt_var.max_val_ss), 0, WAVE_FONT, WAVE_CFONT);
     p_cur_ui->wt_var.mid_val_ss.canvas = p_cur_ui->wt_var.max_val_ss.canvas;
     p_cur_ui->wt_var.mid_val_ss.canvas.start_y =
-        WAVE_BOX_U_S + (WAVE_BOX_H >> 1) - (WAVE_FONT.Height >> 1);
+        WAVE_BOX_U_S + (WAVE_BOX_H >> 1) - (WAVE_FONT_H >> 1);
     p_cur_ui->wt_var.mid_val_ss.str = ui_ftoa_g((wd->rangeMax + wd->rangeMin) / 2, wd->decimal_num);
-    WouoUI_CanvasDrawSlideStr(&(p_cur_ui->wt_var.mid_val_ss), 0, WAVE_FONT);
+    WouoUI_CanvasDrawSlideStrEx(&(p_cur_ui->wt_var.mid_val_ss), 0, WAVE_FONT, WAVE_CFONT);
     p_cur_ui->wt_var.min_val_ss.canvas = p_cur_ui->wt_var.max_val_ss.canvas;
-    p_cur_ui->wt_var.min_val_ss.canvas.start_y = WAVE_BOX_U_S + WAVE_BOX_H - WAVE_FONT.Height;
+    p_cur_ui->wt_var.min_val_ss.canvas.start_y = WAVE_BOX_U_S + WAVE_BOX_H - WAVE_FONT_H;
     p_cur_ui->wt_var.min_val_ss.str = ui_ftoa_g(wd->rangeMin, wd->decimal_num);
-    WouoUI_CanvasDrawSlideStr(&(p_cur_ui->wt_var.min_val_ss), 0, WAVE_FONT);
+    WouoUI_CanvasDrawSlideStrEx(&(p_cur_ui->wt_var.min_val_ss), 0, WAVE_FONT, WAVE_CFONT);
     if (p_cur_ui->anim_is_finish) { // anim结束，且单次滚动没有完成就使能滚动
         if (!(p_cur_ui->wt_var.title_ss.slide_is_finish))
             p_cur_ui->wt_var.title_ss.slide_enable = true;
@@ -865,7 +873,7 @@ bool WouoUI_WavePageReact(PageAddr page_addr) {
             wp->page.cb(&(wp->page), msg); // 任何输入的有效信息都会调用回调函数
     } else {
         if (msg_none != msg && NULL != wp->page.cb) { // 任何输入的有效信息都会调用回调函数
-            ret = wp->page.cb(&(wp->page), msg); // 使用者在回调函数返回true,表示退出这个页面
+            ret = wp->page.cb(&(wp->page), msg);      // 使用者在回调函数返回true,表示退出这个页面
             if (ret == true)
                 WouoUI_PageReturn(page_addr);
         }
@@ -920,7 +928,7 @@ void WouoUI_WavePageUpdateVal(WavePage* wp, uint8_t wave_num, int16_t new_data) 
 #if SOFTWARE_DYNAMIC_REFRESH
         if ((Page*)wp == (Page*)WouoUI_GetCurrentPage() &&
             wave_num == wp->wave_data_select) // 往页面选中项页面存波形数据才有必要刷新屏幕
-            p_cur_ui->is_motionless = false; // 当有波形数据进入时，启用刷新(如果使用软件刷新的话)
+            p_cur_ui->is_motionless = false;  // 当有波形数据进入时，启用刷新(如果使用软件刷新的话)
 #endif
         wave_data->data[wave_data->idx_tail] =
             new_data; // 放入新数据(先赋值再移动index,有利于其他从head到tail的数据循环，tail指向数据保持空)

@@ -25,11 +25,11 @@ ListPage about_version_page;
 // 定义部分页面选项
 //********main页面的选项
 Option mian_option_array[MAIN_PAGE_NUM] = {
-    {.text = (char*)"! WouoUI-Page版"},
+    {.text = (char*)"! WouoUI-Page"},
     {.text = (char*)"+ Setting"},
-    {.text = (char*)"+ Wave你好啊"},
+    {.text = (char*)"+ Wave"},
     {
-        .text = (char*)"~ This is a volumn 哦哦哦 page for test win in win我",
+        .text = (char*)"~ This is a volumn 你好世界page for test win in win",
     },
     {.text = (char*)"% Spin", .val = 123456, .decimalNum = DecimalNum_2},
     {.text = (char*)"- About"}};
@@ -177,23 +177,33 @@ WaveData wave_data_array[] = {
 // //--------定义每个页面的回调函数
 bool MainPage_CallBack(const Page* cur_page_addr, InputMsg msg) {
     Option* select_item = WouoUI_ListTitlePageGetSelectOpt(cur_page_addr);
-    if (msg_click == msg) {                           // 可以依靠text识别选项
-        if (!strcmp(select_item->text, "! WouoUI")) { // 设置消息弹窗内容并跳转
+    if (msg_click ==
+        msg) { // 用 order 下标识别选项，不依赖 text 内容（避免中文/改名导致 strcmp 失效）
+        switch (select_item->order) {
+        case 0: // "! WouoUI-Page" → 消息弹窗
             WouoUI_MsgWinPageSetContent(
                 &common_msg_page, (char*)"WouoUI Page\nStay tuned for more page developments");
             WouoUI_JumpToPage((PageAddr)cur_page_addr, &common_msg_page);
-        } else if (!strcmp(select_item->text, "+ Setting")) {
+            break;
+        case 1: // "+ Setting"
             WouoUI_JumpToPage((PageAddr)cur_page_addr, &setting_page);
-        } else if (!strcmp(select_item->text, "+ Wave")) {
+            break;
+        case 2: // "+ Wave"
             WouoUI_JumpToPage((PageAddr)cur_page_addr, &wave_page);
-        } else if (!strcmp(select_item->text, "~ This is a volumn page for test win in win")) {
+            break;
+        case 3: // "~ volumn page"
             WouoUI_JumpToPage((PageAddr)cur_page_addr, &volumn_page);
-        } else if (!strcmp(select_item->text, "% Spin")) { // 设置spin弹窗的设置范围和小数点数并跳转
+            break;
+        case 4: // "% Spin" — 设置 spin 弹窗范围后跳转
             WouoUI_SpinWinPageSetMinMaxDecimalnum(&common_spin_page, -500000, 500000,
                                                   select_item->decimalNum);
             WouoUI_JumpToPage((PageAddr)cur_page_addr, &common_spin_page);
-        } else if (!strcmp(select_item->text, "- About")) {
+            break;
+        case 5: // "- About"
             WouoUI_JumpToPage((PageAddr)cur_page_addr, &about_page);
+            break;
+        default:
+            break;
         }
     }
     return false;

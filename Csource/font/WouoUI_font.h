@@ -29,6 +29,8 @@ extern const sFONT Font_12_24;
 
 #define GET_FNOT_H(fnot) (fnot.Height)
 #define GET_FNOT_W(fnot) (fnot.Width)
+#define GET_CFONT_H(cfont) (cfont.Height)
+#define GET_CFONT_W(cfont) (cfont.Width)
 
 // 有关字体的设置
 #define WOUOUI_SUPPORT_CHINESE_SYMBOL 1 // 是否支持中文符号显示
@@ -51,6 +53,8 @@ typedef struct {
     uint8_t width;         // 字符宽度
     uint8_t height;        // 字符高度
 } CH_CN;
+#else
+typedef char CNCodeIndexType[3];
 #endif
 typedef struct {
     const char* table;                  // 所有生成的汉字字模的数组

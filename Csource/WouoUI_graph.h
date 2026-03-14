@@ -85,15 +85,18 @@ void WouoUI_GraphSetDynamicBuff(ScreenBuff* buff);
 
 int16_t WouoUI_CanvasDrawASCII(Canvas* canvas, int16_t x, int16_t y, sFONT font, char c);
 void WouoUI_CanvasDrawStr(Canvas* canvas, int16_t x, int16_t y, sFONT font, uint8_t* str);
-void WouoUI_CanvasDrawSlideStr(SlideStr* ss, int16_t y, sFONT font);
+void WouoUI_CanvasDrawTextEx(Canvas* canvas, int16_t x, int16_t y, sFONT sfont, cFONT cfont,
+                             uint8_t* str);
+void WouoUI_CanvasDrawSlideStrEx(SlideStr* ss, int16_t y, sFONT sfont, cFONT cfont);
 void WouoUI_CanvasSlideStrReset(SlideStr* ss);
-void WouoUI_CanvasDrawStrWithNewline(Canvas* canvas, int16_t x, int16_t y, sFONT font, uint8_t* str,
-                                     uint8_t lineSpacing);
-void WouoUI_CanvasDrawStrAutoNewline(Canvas* canvas, int16_t x, int16_t y, sFONT font,
-                                     uint8_t* str);
-uint16_t WouoUI_GetStrWidth(const char* str, sFONT font);
-uint16_t WouoUI_GetStrHeight(const char* str, sFONT font);
-uint16_t WouoUI_GetStrHeightAutoNewLine(int16_t canvas_w, const char* str, sFONT font);
+void WouoUI_CanvasDrawStrWithNewlineEx(Canvas* canvas, int16_t x, int16_t y, sFONT sfont,
+                                       cFONT cfont, uint8_t* str, uint8_t lineSpacing);
+void WouoUI_CanvasDrawStrAutoNewlineEx(Canvas* canvas, int16_t x, int16_t y, sFONT sfont,
+                                       cFONT cfont, uint8_t* str);
+uint16_t WouoUI_GetStrWidthEx(const char* str, sFONT sfont, cFONT cfont);
+uint16_t WouoUI_GetStrHeightEx(const char* str, sFONT sfont, cFONT cfont);
+uint16_t WouoUI_GetStrHeightAutoNewLineEx(int16_t canvas_w, const char* str, sFONT sfont,
+                                          cFONT cfont);
 void WouoUI_CanvasDrawLine_V(Canvas* canvas, int16_t x, int16_t y_start, int16_t y_end);
 void WouoUI_CanvasDrawDashedLine_V(Canvas* canvas, int16_t x, int16_t y_start, int16_t y_end,
                                    uint8_t DashedStyle, uint8_t Unit_Length);
@@ -119,8 +122,8 @@ void WouoUI_CanvasDrawCNSymbol(Canvas* canvas, int16_t x, int16_t y, cFONT cfont
 #    elif (WOUOUI_SUPPORT_CNSYMBOL_GB2312)
 void WouoUI_CanvasDrawCNSymbol(Canvas* canvas, int16_t x, int16_t y, cFONT cfont, char c[2]);
 #    endif
-void WouoUI_CanvasDrawMixStr(Canvas* canvas, int16_t x, int16_t y, sFONT sfont, cFONT cfont,
-                             uint8_t* str);
+void WouoUI_CanvasDrawStrEx(Canvas* canvas, int16_t x, int16_t y, sFONT sfont, cFONT cfont,
+                            uint8_t* str);
 #endif
 
 #ifdef __cplusplus
