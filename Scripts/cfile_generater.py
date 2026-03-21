@@ -7,6 +7,13 @@ C File Generator - Convert font buffers to C code
 
 from datetime import datetime
 import os
+import re
+import unicodedata
+
+try:
+    from pypinyin import lazy_pinyin
+except ImportError:
+    lazy_pinyin = None
 
 
 class CFileGenerator:
@@ -23,7 +30,9 @@ class CFileGenerator:
                 - bit_order: 'lsb' 或 'msb'
                 - encoding: 'positive' 或 'negative'
         """
-        self.font_name = self._sanitize_name(font_name)
+        self._name_hint_cache = set()
+        self._has_warned_missing_pinyin = False
+        self.font_name = self._sanitize_name(font_name, fallback='font')
         
         # 默认配置
         self.config = {
@@ -72,7 +81,37 @@ class CFileGenerator:
             'chars': list(char_list or [])
         })
     
-    def _sanitize_name(self, name):
+    def _is_cjk_char(self, char):
+        code = ord(char)
+        return (
+            0x4E00 <= code <= 0x9FFF
+            or 0x3400 <= code <= 0x4DBF
+            or 0xF900 <= code <= 0xFAFF
+            or 0x20000 <= code <= 0x2A6DF
+            or 0x2A700 <= code <= 0x2B73F
+            or 0x2B740 <= code <= 0x2B81F
+            or 0x2B820 <= code <= 0x2CEAF
+        )
+
+    def _romanize_cjk_char(self, char):
+        if lazy_pinyin:
+            parts = lazy_pinyin(char, errors='ignore')
+            if parts and parts[0]:
+                return parts[0]
+
+        if not self._has_warned_missing_pinyin:
+            print("[提示] 检测到中文命名但未安装 pypinyin，将使用 uXXXX 兜底。建议直接使用英文命名。")
+            self._has_warned_missing_pinyin = True
+        return f"u{ord(char):04x}"
+
+    def _warn_name_conversion(self, original, sanitized, reason):
+        key = (str(original), str(sanitized), reason)
+        if key in self._name_hint_cache:
+            return
+        self._name_hint_cache.add(key)
+        print(f"[提示] {reason}已自动转换为英文/可用标识符: '{original}' -> '{sanitized}'，建议直接使用英文命名。")
+
+    def _sanitize_name(self, name, fallback='item'):
         """
         清理不符合C命名规范的字符
         
@@ -82,16 +121,41 @@ class CFileGenerator:
         Returns:
             str: 清理后的名称
         """
-        result = ""
-        for char in name:
-            if char.isalnum() or char == '_':
-                result += char
+        raw_name = str(name or '').strip()
+        if not raw_name:
+            raw_name = fallback
+
+        result_parts = []
+        has_cjk = False
+
+        for char in raw_name:
+            if ord(char) < 128 and (char.isalnum() or char == '_'):
+                result_parts.append(char)
+                continue
+
+            if self._is_cjk_char(char):
+                has_cjk = True
+                result_parts.append(self._romanize_cjk_char(char))
+                continue
+
+            ascii_part = unicodedata.normalize('NFKD', char).encode('ascii', 'ignore').decode('ascii')
+            if ascii_part and all((ord(c) < 128 and (c.isalnum() or c == '_')) for c in ascii_part):
+                result_parts.append(ascii_part)
             else:
-                result += "_"
+                result_parts.append('_')
+
+        result = ''.join(result_parts)
+        result = re.sub(r'_+', '_', result).strip('_')
+        if not result:
+            result = fallback
         
         # 确保不以数字开头
         if result and result[0].isdigit():
             result = "_" + result
+
+        if result != raw_name:
+            reason = "检测到中文命名，" if has_cjk else "检测到非ASCII命名，"
+            self._warn_name_conversion(raw_name, result, reason)
         
         return result
     
@@ -381,6 +445,150 @@ class CFileGenerator:
                     bytes_list.append(byte_val)
         
         return bytes_list
+
+    def pixels_to_bytes(self, pixels, width, height):
+        """对外暴露像素转字节能力（ICON复用）。"""
+        return self._pixels_to_bytes(pixels, width, height)
+
+    def _format_icon_name(self, name, fallback_prefix="icon"):
+        sanitized = self._sanitize_name(str(name or ""))
+        if not sanitized:
+            sanitized = fallback_prefix
+        return sanitized
+
+    def generate_icon_header(self, output_name, icon_entries, icon_width, icon_height):
+        """生成ICON头文件内容。"""
+        module_name = self._format_icon_name(output_name, "Icon")
+        guard_name = f"__ICON_{module_name.upper()}_H"
+        bytes_per_icon = icon_width * ((icon_height + 7) // 8)
+
+        header = f"""/**
+ * Auto-generated icon header file
+ * Module: {module_name}
+ * Icon Count: {len(icon_entries)}
+ * Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
+ *
+ * Layout: {self.config['layout']}
+ * Bit Order: {self.config['bit_order']}
+ * Encoding: {self.config['encoding']}
+ */
+
+#ifndef {guard_name}
+#define {guard_name}
+
+#include <stdint.h>
+
+#define {module_name.upper()}_ICON_WIDTH {icon_width}
+#define {module_name.upper()}_ICON_HEIGHT {icon_height}
+#define {module_name.upper()}_ICON_BYTES {bytes_per_icon}
+#define {module_name.upper()}_ICON_COUNT {len(icon_entries)}
+
+typedef struct {{
+    const char* name;
+    const uint8_t* data;
+}} IconAsset;
+
+"""
+
+        for entry in icon_entries:
+            symbol_name = entry['symbol_name']
+            header += f"extern const uint8_t {symbol_name}[{module_name.upper()}_ICON_BYTES];\n"
+
+        header += "\n"
+        header += f"extern const IconAsset {module_name}_icon_assets[{module_name.upper()}_ICON_COUNT];\n"
+        header += f"extern const uint16_t {module_name}_icon_asset_count;\n\n"
+        header += f"#endif /* {guard_name} */\n"
+        return header
+
+    def generate_icon_source(self, output_name, icon_entries, icon_width, icon_height):
+        """生成ICON源文件内容。"""
+        module_name = self._format_icon_name(output_name, "Icon")
+        bytes_per_icon = icon_width * ((icon_height + 7) // 8)
+
+        source = f"""/**
+ * Auto-generated icon source file
+ * Module: {module_name}
+ * Icon Count: {len(icon_entries)}
+ * Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
+ *
+ * Layout: {self.config['layout']}
+ * Bit Order: {self.config['bit_order']}
+ * Encoding: {self.config['encoding']}
+ */
+
+#include \"{module_name}.h\"
+
+"""
+
+        for entry in icon_entries:
+            source += f"/* {entry['display_name']} */\n"
+            source += f"const uint8_t {entry['symbol_name']}[{bytes_per_icon}] = {{\n"
+
+            bytes_list = entry['bytes']
+            lines = []
+            chunk_size = 12
+            for index in range(0, len(bytes_list), chunk_size):
+                chunk = bytes_list[index:index + chunk_size]
+                is_last_chunk = (index + chunk_size) >= len(bytes_list)
+                line = "    " + ", ".join(f"0x{value:02X}" for value in chunk)
+                if not is_last_chunk:
+                    line += ","
+                lines.append(line)
+            source += "\n".join(lines) + "\n"
+            source += "};\n\n"
+
+        source += f"const IconAsset {module_name}_icon_assets[{module_name.upper()}_ICON_COUNT] = {{\n"
+        for index, entry in enumerate(icon_entries):
+            comma = ',' if index < len(icon_entries) - 1 else ''
+            source += f"    {{\"{entry['display_name']}\", {entry['symbol_name']}}}{comma}\n"
+        source += "};\n\n"
+        source += f"const uint16_t {module_name}_icon_asset_count = {module_name.upper()}_ICON_COUNT;\n"
+
+        return source
+
+    def save_icon_files(self, output_dir, output_name, icon_entries, icon_width, icon_height):
+        """保存ICON的.c和.h文件。"""
+        if not icon_entries:
+            raise ValueError("icon_entries 不能为空")
+
+        if not os.path.exists(output_dir):
+            os.makedirs(output_dir)
+
+        module_name = self._format_icon_name(output_name, "Icon")
+
+        normalized_entries = []
+        used_symbol_names = set()
+        for index, entry in enumerate(icon_entries):
+            display_name = str(entry.get('name', f'icon_{index}'))
+            symbol_base = self._format_icon_name(display_name, f"icon_{index}")
+            symbol_name = f"{module_name}_{symbol_base}"
+            while symbol_name in used_symbol_names:
+                symbol_name = f"{symbol_name}_{index}"
+            used_symbol_names.add(symbol_name)
+
+            bytes_list = entry.get('bytes')
+            if bytes_list is None:
+                pixels = entry.get('pixels')
+                if pixels is None:
+                    raise ValueError(f"图标 {display_name} 未提供 pixels 或 bytes")
+                bytes_list = self._pixels_to_bytes(pixels, icon_width, icon_height)
+
+            normalized_entries.append({
+                'display_name': display_name,
+                'symbol_name': symbol_name,
+                'bytes': bytes_list,
+            })
+
+        header_path = os.path.join(output_dir, f"{module_name}.h")
+        source_path = os.path.join(output_dir, f"{module_name}.c")
+
+        with open(header_path, 'w', encoding='utf-8') as f:
+            f.write(self.generate_icon_header(module_name, normalized_entries, icon_width, icon_height))
+
+        with open(source_path, 'w', encoding='utf-8') as f:
+            f.write(self.generate_icon_source(module_name, normalized_entries, icon_width, icon_height))
+
+        return header_path, source_path
     
     def _get_baseline_metrics(self, char_data):
         """

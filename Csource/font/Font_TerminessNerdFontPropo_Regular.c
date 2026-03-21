@@ -2,7 +2,7 @@
  * Auto-generated font source file
  * Font: TerminessNerdFontPropo_Regular
  * Sizes: 8px, 12px, 16px
- * Generated: 2026-03-14 18:47:29
+ * Generated: 2026-03-21 17:13:45
  * 
  * Layout: row_column
  * Bit Order: lsb

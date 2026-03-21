@@ -4,3 +4,5 @@
 pyyaml>=6.0
 freetype-py>=2.5.1
 chardet>=5.2.0
+Pillow>=10.0.0
+pypinyin>=0.52.0

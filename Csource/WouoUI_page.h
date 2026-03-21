@@ -41,8 +41,9 @@ typedef struct Option {
     // 弹窗类:滑动数值弹窗(~)/微调数字弹窗(%)/提示弹窗(!)/二值确认弹窗(#)/侧边列表(>)
     // 列表内:二值选框(@)
     // 跳转:跳转页面(+)/跳转波形页面($)/跳转文本页面({)
-    String content;        // 文本内容
-    int32_t val;           // 这个列表项关联的显示的值(可以用于设置初值)
+    String
+        content; // 文本内容(在TilePage中，content表示显示图标的数组，以此复用，毕竟实际是char*类型的指针)，在弹窗页面中表示显示的文本内容，在列表页面中表示选项值显示的字符串(如果有的话)
+    int32_t val; // 这个列表项关联的显示的值(可以用于设置初值)
     uint8_t order;         // 该选项在列表/磁贴中的排序(0-255)
     DecimalNum decimalNum; // 小数位数
 } Option;                  // 通用选项类型
@@ -177,14 +178,14 @@ struct TitlePageVar { // 因为Title选中项一直在中间，所以不需要�
     AnimPos titleY;   // 标题的y坐标
     SlideStr title_ss; // 滑动标题
 };
-typedef const uint8_t Icon[ICON_BUFFSIZE]; // 定义图标类型
-typedef struct TitlePage {                 // 磁贴页面
-    Page page;                             // 基础页面信息
-    uint8_t item_num;                      // 页面选项个数，option_array和icon_array个数需与此一致
-    Option* option_array;                  // 选项类型的数组(由于数组大小不确定，使用指针代替)
-    Icon* icon_array;                      // 图标数组(由于数组大小不确定，使用指针代替)
-    uint8_t select_item;                   // 选中选项
-} TitlePage;                               // 磁帖页面类型(所有类型页面，类型成员为第一个，方便查看)
+// typedef const uint8_t Icon[ICON_BUFFSIZE]; // 定义图标类型
+typedef struct TitlePage { // 磁贴页面
+    Page page;             // 基础页面信息
+    uint8_t item_num;      // 页面选项个数，option_array和icon_array个数需与此一致
+    Option* option_array;  // 选项类型的数组(由于数组大小不确定，使用指针代替)
+    // Icon* icon_array;      // 图标数组(由于数组大小不确定，使用指针代替)
+    uint8_t select_item; // 选中选项
+} TitlePage;             // 磁帖页面类型(所有类型页面，类型成员为第一个，方便查看)
 // TitlePage的接口函数
 /**
  * @brief 初始化标题页面
@@ -196,7 +197,7 @@ typedef struct TitlePage {                 // 磁贴页面
  * @attention 数组大小需要使用者传入，确保传入的数组大小正确
  */
 void WouoUI_TitlePageInit(TitlePage* title_page, uint8_t item_num, Option* option_array,
-                          Icon* icon_array, CallBackFunc call_back);
+                          CallBackFunc call_back);
 /**
  * @brief 切换到上一个选项
  * @param tp 标题页面结构体指针

@@ -1,5 +1,6 @@
 #include "WouoUI_page.h"
 #include "WouoUI.h" //包含自己的顶层文件其实不好(但需要调用到p_cur_ui,后期再改吧)
+#include "WouoUI_common.h"
 #include "math.h"
 //**********************通用页面处理方法
 /**
@@ -97,8 +98,13 @@ bool WouoUI_TitlePageIn(PageAddr page_addr) {
         else // 保证选中的选项在中间，向两侧展开
             temp = ((WOUOUI_BUFF_WIDTH - TILE_ICON_W) >> 1) +
                    (i - tp->select_item) * p_cur_ui->tp_var.iconX.pos_cur;
-        WouoUI_CanvasDrawBMP(&(p_cur_ui->w_all), temp, (int16_t)(p_cur_ui->tp_var.iconY.pos_cur),
-                             TILE_ICON_W, TILE_ICON_H, tp->icon_array[i], 1);
+        if (tp->option_array != NULL && tp->option_array[i].content != NULL)
+            // 如果有图标数组，就用图标数组，没有就用content指针当图标数据
+            WouoUI_CanvasDrawBMP(&(p_cur_ui->w_all), temp,
+                                 (int16_t)(p_cur_ui->tp_var.iconY.pos_cur), TILE_ICON_W,
+                                 TILE_ICON_H, (const uint8_t*)(tp->option_array[i].content), 1);
+        else
+            WOUOUI_LOG_E("Option lack content, No Icon display");
     }
     if (p_cur_ui->tp_var.iconX.pos_cur == p_cur_ui->tp_var.iconX.pos_tgt) {
         ret = true;
@@ -134,11 +140,14 @@ void WouoUI_TitlePageShow(PageAddr page_addr) {
     // 绘制装饰条
     WouoUI_CanvasDrawRBox(&(p_cur_ui->w_all), p_cur_ui->tp_var.barX.pos_cur, TILE_BAR_U, TILE_BAR_W,
                           TILE_BAR_H, 0);
-    for (uint8_t i = 0; i < tp->item_num; i++) // 过度动画完成后一般选择时的切换动画
-        WouoUI_CanvasDrawBMP(&(p_cur_ui->w_all),
-                             (WOUOUI_BUFF_WIDTH - TILE_ICON_W) / 2 +
-                                 (int16_t)(p_cur_ui->tp_var.iconX.pos_cur) + i * TILE_ICON_S,
-                             TILE_ICON_U, TILE_ICON_W, TILE_ICON_H, tp->icon_array[i], 1);
+    for (uint8_t i = 0; i < tp->item_num; i++) { // 过度动画完成后一般选择时的切换动画
+        if (tp->option_array != NULL && tp->option_array[i].content != NULL)
+            WouoUI_CanvasDrawBMP(&(p_cur_ui->w_all),
+                                 (WOUOUI_BUFF_WIDTH - TILE_ICON_W) / 2 +
+                                     (int16_t)(p_cur_ui->tp_var.iconX.pos_cur) + i * TILE_ICON_S,
+                                 TILE_ICON_U, TILE_ICON_W, TILE_ICON_H,
+                                 (const uint8_t*)(tp->option_array[i].content), 1);
+    }
     p_cur_ui->slide_is_finish = !(p_cur_ui->tp_var.title_ss.slide_enable);
     // 使用enable而不是is_finish是因为enable时一直在滚动，滚动结束才会置false，而且每次reset
     // enable都是false
@@ -198,7 +207,6 @@ void WouoUI_TitlePageInit(
     TitlePage* title_page,  // 磁贴页面对象
     uint8_t item_num,       // 选项个数，需与title数组大小，icon数组大小一致(最多255个)
     Option* option_array,   // 整个页面的选项数组(数组大小需与item_num一致)
-    Icon* icon_array,       // 整个页面的icon数组(数组大小需与item_num一致)
     CallBackFunc call_back) // 回调函数，参数为确认选中项index（1-256）0表示未确认哪个选项
 {
     if (TILE_MACRO_ASSERT)
@@ -209,7 +217,7 @@ void WouoUI_TitlePageInit(
     title_page->select_item = 0;
     title_page->item_num = item_num;
     title_page->option_array = option_array;
-    title_page->icon_array = icon_array;
+    // title_page->icon_array = icon_array;
     for (uint8_t i = 0; i < title_page->item_num; i++) {
         title_page->option_array[i].order = i; // 选项序号标号
         if (NULL == title_page->option_array[i].text) {

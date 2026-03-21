@@ -3,6 +3,9 @@
 
 # 扫描配置
 scan:
+  # 是否根据扫描结果自动回写 WouoUI_font.h 的中文相关宏
+  auto_write_font_macros: true
+
   # 文件无BOM时优先尝试的编码（按顺序严格解码）
   # 都失败后再使用 chardet 猜测
   bomless_preferred_encodings:
@@ -113,4 +116,89 @@ preview:
   
   # 预览展示的字符串
   text: "WQghH123我"
+
+# ICON生成配置
+icon:
+  # ICON输出目录（相对于 Scripts 目录）
+  output_c_folder: ../Csource/font
+
+  # 输出文件名（将生成 <output_file_name>.c/.h）
+  output_file_name: IconAssets
+
+  # 统一ICON尺寸
+  width: 30
+  height: 30
+
+  # 图片二值化阈值（0-255，越大越容易变黑）
+  image_threshold: 128
+
+  # 图片来源（支持多个路径，路径相对于 Scripts 目录）
+  image_paths:
+    # - ../Image/*.bmp
+    - ../Image/UI.bmp
+    - ../Image/设置.bmp
+    - ../Image/Curves.bmp
+    - ../Image/lock.bmp
+    - ../Image/Page.bmp
+    - ../Image/f-about.bmp
+
+  # 图标字体来源（支持Nerd Font等）
+  icon_fonts:
+    - font_path: ../font/Terminus/TerminessNerdFont-Bold.ttf
+      size: 30
+      icons:
+        - name: nf_home
+          codepoint: "F015"
+        - name: nf_terminal
+          codepoint: "F120"
+        - name: nf_gear
+          char: ""
+        - name: nf_search
+          codepoint: "F002"
+        - name: nf_folder
+          codepoint: "F07B"
+    - font_path: ../font/Terminus/TerminessNerdFont-Regular.ttf
+      size: 30
+      icons:
+        - name: nf_music
+          codepoint: "F001"
+        - name: nf_camera
+          codepoint: "F030"
+        - name: nf_lock
+          codepoint: "F023"
+        - name: nf_wifi
+          codepoint: "F1EB"
+    - font_path: ../font/Terminus/TerminessNerdFontMono-Regular.ttf
+      size: 30
+      icons:
+        - name: nf_bell
+          codepoint: "F0F3"
+        - name: nf_download
+          codepoint: "F019"
+        - name: nf_upload
+          codepoint: "F093"
+        - name: nf_check
+          codepoint: "F00C"
+    - font_path: ../font/Terminus/TerminessNerdFontPropo-Regular.ttf
+      size: 30
+      icons:
+        - name: nf_play
+          codepoint: "F04B"
+        - name: nf_pause
+          codepoint: "F04C"
+        - name: nf_stop
+          codepoint: "F04D"
+        - name: nf_power
+          codepoint: "F011"
+    - font_path: ../font/Terminus/TerminessNerdFont-Italic.ttf
+      size: 30
+      icons:
+        - name: nf_calendar
+          codepoint: "F073"
+        - name: nf_envelope
+          codepoint: "F0E0"
+        - name: nf_star
+          codepoint: "F005"
+        - name: nf_trash
+          codepoint: "F1F8"
 

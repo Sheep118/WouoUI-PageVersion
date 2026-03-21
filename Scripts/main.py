@@ -9,6 +9,7 @@ import os
 import sys
 import yaml
 import argparse
+import re
 from pathlib import Path
 
 from ttf_parser import TTFParser
@@ -31,6 +32,69 @@ class FontGenerator:
         self.config = self._load_config()
         self.script_dir = os.path.dirname(__file__)
         self.scan_summary = None
+
+    def _normalize_scan_encoding(self, encoding_name):
+        """将扫描得到的编码名称归一化为 utf-8 / gb2312 / unknown。"""
+        if not encoding_name:
+            return 'unknown'
+
+        name = str(encoding_name).strip().lower()
+        if 'gb18030' in name or 'gbk' in name or 'gb2312' in name or 'gb-2312' in name:
+            return 'gb2312'
+        if 'utf' in name:
+            return 'utf-8'
+        return 'unknown'
+
+    def _infer_chinese_encoding_from_scan(self, scan_results):
+        """根据扫描结果里“含中文文件”的编码推断中文索引编码。"""
+        encodings = set()
+        for item in scan_results:
+            if not item.get('chinese_chars'):
+                continue
+            encodings.add(self._normalize_scan_encoding(item.get('encoding')))
+
+        encodings.discard('unknown')
+        if not encodings:
+            return None
+        if encodings == {'utf-8'}:
+            return 'utf-8'
+        if encodings == {'gb2312'}:
+            return 'gb2312'
+        return 'mixed'
+
+    def _write_wououi_font_macros(self, support_chinese_symbol, support_unicode, support_gb2312):
+        """回写 WouoUI_font.h 中中文相关宏。"""
+        header_path = self._resolve_path('../Csource/font/WouoUI_font.h')
+        if not os.path.exists(header_path):
+            print(f"[!] 未找到 WouoUI_font.h，跳过宏写入: {header_path}")
+            return False
+
+        with open(header_path, 'r', encoding='utf-8') as f:
+            content = f.read()
+
+        replacements = {
+            'WOUOUI_SUPPORT_CHINESE_SYMBOL': int(bool(support_chinese_symbol)),
+            'WOUOUI_SUPPORT_CNSYMBOL_UNICODE': int(bool(support_unicode)),
+            'WOUOUI_SUPPORT_CNSYMBOL_GB2312': int(bool(support_gb2312)),
+        }
+
+        original_content = content
+        for macro, value in replacements.items():
+            pattern = rf"(^\s*#\s*define\s+{macro}\s+)\d+"
+            content, count = re.subn(pattern, rf"\g<1>{value}", content, flags=re.MULTILINE)
+            if count == 0:
+                print(f"[!] 在 WouoUI_font.h 中未找到宏: {macro}")
+
+        if content != original_content:
+            with open(header_path, 'w', encoding='utf-8', newline='\n') as f:
+                f.write(content)
+
+        print("[宏写入] 已更新 WouoUI_font.h 中文相关开关:")
+        print(f"  - WOUOUI_SUPPORT_CHINESE_SYMBOL = {replacements['WOUOUI_SUPPORT_CHINESE_SYMBOL']}")
+        print(f"  - WOUOUI_SUPPORT_CNSYMBOL_UNICODE = {replacements['WOUOUI_SUPPORT_CNSYMBOL_UNICODE']}")
+        print(f"  - WOUOUI_SUPPORT_CNSYMBOL_GB2312 = {replacements['WOUOUI_SUPPORT_CNSYMBOL_GB2312']}")
+        print(f"  - 文件: {header_path}")
+        return True
     
     def _load_config(self):
         """
@@ -62,9 +126,37 @@ class FontGenerator:
     def scan_chinese_charset(self):
         """执行中文扫描，并从扫描报告中重新读取字符集与频次。"""
         scanner = CharScanner(self.config_path)
-        scanner.run()
+        scan_results, _ = scanner.run()
 
+        inferred_encoding = self._infer_chinese_encoding_from_scan(scan_results)
+        has_chinese = any(item.get('chinese_chars') for item in scan_results)
         scan_cfg = self.config.get('scan', {})
+        auto_write_macros = bool(scan_cfg.get('auto_write_font_macros', True))
+
+        if has_chinese:
+            if inferred_encoding == 'gb2312':
+                if auto_write_macros:
+                    self._write_wououi_font_macros(1, 0, 1)
+                else:
+                    print("[提示] 已关闭自动宏写入（scan.auto_write_font_macros=false），跳过写入 WouoUI_font.h")
+                self.config.setdefault('generate', {})['chinese_encoding'] = 'gb2312'
+                print("[提示] 已根据扫描编码设置中文索引为 gb2312")
+            elif inferred_encoding == 'utf-8':
+                if auto_write_macros:
+                    self._write_wououi_font_macros(1, 1, 0)
+                else:
+                    print("[提示] 已关闭自动宏写入（scan.auto_write_font_macros=false），跳过写入 WouoUI_font.h")
+                self.config.setdefault('generate', {})['chinese_encoding'] = 'utf-8'
+                print("[提示] 已根据扫描编码设置中文索引为 utf-8")
+            else:
+                # 混合编码时保留双支持，生成侧默认使用 utf-8
+                if auto_write_macros:
+                    self._write_wououi_font_macros(1, 1, 1)
+                else:
+                    print("[提示] 已关闭自动宏写入（scan.auto_write_font_macros=false），跳过写入 WouoUI_font.h")
+                self.config.setdefault('generate', {})['chinese_encoding'] = 'utf-8'
+                print("[提示] 扫描结果包含混合编码，已同时启用 UNICODE/GB2312；生成编码默认使用 utf-8")
+
         report_path = self._resolve_path(scan_cfg.get('output_report', './scan_result.txt'))
         summary = load_scan_result(report_path)
         print_frequency_summary(summary['counter'])
@@ -490,12 +582,25 @@ def main():
     parser.add_argument('--list-profiles', '--list',
                         action='store_true',
                         help='列出所有可用的profile')
+    parser.add_argument('--icons',
+                        action='store_true',
+                        help='仅执行ICON数组生成（读取config中的icon配置）')
     
     args = parser.parse_args()
     
     # 处理 --list-profiles
     if args.list_profiles:
         generator.list_profiles()
+        return
+
+    # 处理 --icons
+    if args.icons:
+        from icon_generator import IconGenerator
+
+        icon_generator = IconGenerator(config_path)
+        ok, _ = icon_generator.generate_icons()
+        if not ok:
+            sys.exit(1)
         return
     
     # 处理临时快速方式 (--font 和 --sizes)

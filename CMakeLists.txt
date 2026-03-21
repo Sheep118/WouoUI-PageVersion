@@ -14,6 +14,7 @@ set(WOUOUI_SOURCES
     "${WOUOUI_SRC_DIR}/WouoUI.c"
     "${WOUOUI_SRC_DIR}/WouoUI_anim.c"
     # ${WOUOUI_FONT_SOURCES}
+    "${WOUOUI_SRC_DIR}/font/IconAssets.c"
     "${WOUOUI_SRC_DIR}/font/Font__04B_03__.c"
     "${WOUOUI_SRC_DIR}/font/Font_ZLabsBitmap_12px_CN.c"
     "${WOUOUI_SRC_DIR}/font/Font_TerminessNerdFont_BoldItalic.c"
