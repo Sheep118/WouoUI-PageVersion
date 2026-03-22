@@ -18,6 +18,8 @@ set(WOUOUI_SOURCES
     "${WOUOUI_SRC_DIR}/font/Font__04B_03__.c"
     "${WOUOUI_SRC_DIR}/font/Font_ZLabsBitmap_12px_CN.c"
     "${WOUOUI_SRC_DIR}/font/Font_TerminessNerdFont_BoldItalic.c"
+    "${WOUOUI_SRC_DIR}/font/Font_TerminessNerdFontPropo_Bold.c"
+    "${WOUOUI_SRC_DIR}/font/Font_TerminessNerdFontPropo_Regular.c"
     "${WOUOUI_SRC_DIR}/font/Font_unifont_16_0_04.c"
     "${WOUOUI_SRC_DIR}/font/WouoUI_font.c"
     "${WOUOUI_SRC_DIR}/WouoUI_graph.c"

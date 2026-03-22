@@ -5,6 +5,8 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+#include "./font/Font_TerminessNerdFontPropo_Bold.h"
+#include "./font/Font_TerminessNerdFontPropo_Regular.h"
 #include "./font/Font_TerminessNerdFont_BoldItalic.h"
 #include "./font/Font_ZLabsBitmap_12px_CN.h"
 #include "./font/Font__04B_03__.h"

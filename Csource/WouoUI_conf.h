@@ -17,8 +17,8 @@
 #endif
 
 //---------------------与UI相关的参数
-#define WOUOUI_BUFF_WIDTH 128                   // 屏幕宽
-#define WOUOUI_BUFF_HEIGHT 64                   // 屏幕高
+#define WOUOUI_BUFF_WIDTH 256                   // 屏幕宽
+#define WOUOUI_BUFF_HEIGHT 128                  // 屏幕高
 #define WOUOUI_INPUT_MSG_QUNEE_SIZE 4           // ui内部消息对列的大小(至少需要是2)
 #define WOUOUI_WIN_TXT_DEFAULT "NO SET TEXT!!!" // 当弹窗没有设置自动获取且没有设置文本时的默认文本
 
@@ -29,7 +29,7 @@
 #define WOUOUI_SLIDESTR_START_DELAY 20 // slidestr开始滑动的延迟大小(最大255)
 
 //------------------与title页面相关的默认参数
-#define DEFAULT_TILE_B_TITLE_FNOT ZLabsBitmap_12px_CN_9x15_t // 磁贴大标题字体
+#define DEFAULT_TILE_B_TITLE_FNOT unifont_16_0_04_9x15_t // 磁贴大标题字体
 #if (WOUOUI_SUPPORT_CHINESE_SYMBOL)
 #    define DEFAULT_TILE_B_TITLE_CFONT ZLabsBitmap_12px_CN_13x12_CN_t // 磁贴大标题中文字体
 #else
@@ -48,9 +48,9 @@
 #define DEFAULT_TILE_BAR_H 24        // 磁贴装饰条高度
 #define DEFAULT_TILE_SLIDESTR_MODE 2 // 磁贴标题文本的滚动模式
 //------------------与list页面相关的默认参数
-#define DEFAULT_LIST_TEXT_FONT unifont_16_0_04_8x10_t // 列表文字的字体
+#define DEFAULT_LIST_TEXT_FONT ZLabsBitmap_12px_CN_7x11_t // 列表文字的字体
 #if (WOUOUI_SUPPORT_CHINESE_SYMBOL)
-#    define DEFAULT_LIST_TEXT_CFONT ZLabsBitmap_12px_CN_13x12_CN_t // 列表文字中文字体
+#    define DEFAULT_LIST_TEXT_CFONT ((cFONT){0}) // 列表文字中文字体
 #else
 #    define DEFAULT_LIST_TEXT_CFONT ((cFONT){0})
 #endif
@@ -78,9 +78,9 @@
 #define DEFAULT_LIST_LINETAIL_CONF_PREFIX                                                          \
     "@#" // listtext中使用这些字符其中一个，行尾会显示一个单选框(其中第一个作为二值选项框会自动处理,如果开启自动处理的话)
 //------------------与Wave页面相关的默认参数
-#define DEFAULT_WAVE_FONT Font_6_8 // 波形字体
+#define DEFAULT_WAVE_FONT ZLabsBitmap_12px_CN_7x11_t // 波形字体
 #if (WOUOUI_SUPPORT_CHINESE_SYMBOL)
-#    define DEFAULT_WAVE_CFONT ZLabsBitmap_12px_CN_13x12_CN_t // 波形中文字体
+#    define DEFAULT_WAVE_CFONT ((cFONT){0}) // 波形中文字体
 #else
 #    define DEFAULT_WAVE_CFONT ((cFONT){0})
 #endif
@@ -99,9 +99,9 @@
 #define DEFAULT_WAVE_VAL_SLIDESTR_MODE 2                        // WAVE数值文本的滚动模式
 
 //---------------与MsgWin页面相关的默认参数
-#define DEFAULT_MSG_WIN_FONT _04B_03___7x7_t // Msg弹窗字体
+#define DEFAULT_MSG_WIN_FONT ZLabsBitmap_12px_CN_7x11_t // Msg弹窗字体
 #if (WOUOUI_SUPPORT_CHINESE_SYMBOL)
-#    define DEFAULT_MSG_WIN_CFONT ZLabsBitmap_12px_CN_13x12_CN_t // Msg弹窗中文字体
+#    define DEFAULT_MSG_WIN_CFONT ((cFONT){0}) // Msg弹窗中文字体
 #else
 #    define DEFAULT_MSG_WIN_CFONT ((cFONT){0})
 #endif
@@ -111,9 +111,9 @@
 #define DEFAULT_MSG_WIN_FONT_MARGIN 4 // MSG弹窗文本到边框来的边距
 
 //---------------与ConfWin页面相关的默认参数
-#define DEFAULT_CONF_WIN_FONT Font_6_8 // CONF弹窗字体
+#define DEFAULT_CONF_WIN_FONT ZLabsBitmap_12px_CN_7x11_t // CONF弹窗字体
 #if (WOUOUI_SUPPORT_CHINESE_SYMBOL)
-#    define DEFAULT_CONF_WIN_CFONT ZLabsBitmap_12px_CN_13x12_CN_t // CONF弹窗中文字体
+#    define DEFAULT_CONF_WIN_CFONT ((cFONT){0}) // CONF弹窗中文字体
 #else
 #    define DEFAULT_CONF_WIN_CFONT ((cFONT){0})
 #endif
@@ -127,9 +127,9 @@
 #define DEFAULT_CONF_BTN_SLIDESTR_MODE 2 // WAVE文本的滚动模式
 
 //--------------与ValWin页面相关的默认参数
-#define DEFAULT_VAL_WIN_FONT Font_6_8 // Val弹窗字体
+#define DEFAULT_VAL_WIN_FONT ZLabsBitmap_12px_CN_7x11_t // Val弹窗字体
 #if (WOUOUI_SUPPORT_CHINESE_SYMBOL)
-#    define DEFAULT_VAL_WIN_CFONT ZLabsBitmap_12px_CN_13x12_CN_t // Val弹窗中文字体
+#    define DEFAULT_VAL_WIN_CFONT ((cFONT){0}) // Val弹窗中文字体
 #else
 #    define DEFAULT_VAL_WIN_CFONT ((cFONT){0})
 #endif
@@ -148,11 +148,11 @@
 #define DEFAULT_VAL_WIN_VAL_SLISTRMODE 3 // Val弹窗数值文本的滚动模式
 
 //--------------与SpinWin页面相关的默认参数
-#define DEFAULT_SPIN_WIN_FONT Font_7_12     // 弹窗字体
-#define DEFAULT_SPIN_WIN_NUM_FONT Font_7_12 // 数字字体
+#define DEFAULT_SPIN_WIN_FONT ZLabsBitmap_12px_CN_7x11_t     // 弹窗字体
+#define DEFAULT_SPIN_WIN_NUM_FONT ZLabsBitmap_12px_CN_7x11_t // 数字字体
 #if (WOUOUI_SUPPORT_CHINESE_SYMBOL)
-#    define DEFAULT_SPIN_WIN_CFONT ZLabsBitmap_12px_CN_13x12_CN_t     // Spin弹窗中文字体
-#    define DEFAULT_SPIN_WIN_NUM_CFONT ZLabsBitmap_12px_CN_13x12_CN_t // Spin数字中文字体
+#    define DEFAULT_SPIN_WIN_CFONT ((cFONT){0})     // Spin弹窗中文字体
+#    define DEFAULT_SPIN_WIN_NUM_CFONT ((cFONT){0}) // Spin数字中文字体
 #else
 #    define DEFAULT_SPIN_WIN_CFONT ((cFONT){0})
 #    define DEFAULT_SPIN_WIN_NUM_CFONT ((cFONT){0})
@@ -170,9 +170,9 @@
 #define DEFAULT_SPIN_WIN_SLI_VAL_MODE 2  // Spin弹窗数值文本的滚动模式
 
 //---------------与ListWin页面相关的默认参数
-#define DEFAULT_LIST_WIN_FONT Font_6_8 // 弹窗字体
+#define DEFAULT_LIST_WIN_FONT ZLabsBitmap_12px_CN_7x11_t // 弹窗字体
 #if (WOUOUI_SUPPORT_CHINESE_SYMBOL)
-#    define DEFAULT_LIST_WIN_CFONT ZLabsBitmap_12px_CN_13x12_CN_t // List弹窗中文字体
+#    define DEFAULT_LIST_WIN_CFONT ((cFONT){0}) // List弹窗中文字体
 #else
 #    define DEFAULT_LIST_WIN_CFONT ((cFONT){0})
 #endif
