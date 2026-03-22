@@ -26,16 +26,16 @@ ListPage about_version_page;
 // 定义部分页面选项
 //********main页面的选项
 Option mian_option_array[MAIN_PAGE_NUM] = {
-    {.text = (char*)"! WouoUI-Page", .content = (char*)IconAssets_nf_star}, // 使用默认文本提示noset
-    {.text = (char*)"+ Setting", .content = (char*)IconAssets_nf_pause},
-    {.text = (char*)"+ Wave", .content = (char*)IconAssets_nf_stop},
+    {.text = (char*)"! WouoUI-Page", .content = (char*)IconAssets_UI}, // 使用默认文本提示noset
+    {.text = (char*)"+ Setting", .content = (char*)IconAssets_nf_gear},
+    {.text = (char*)"+ Wave", .content = (char*)IconAssets_Curves},
     {.text = (char*)"~ This is a volumn 你好世界page for test win in win",
-     .content = (char*)IconAssets_nf_power},
+     .content = (char*)IconAssets_lock},
     {.text = (char*)"% Spin",
-     .content = (char*)IconAssets_nf_calendar,
+     .content = (char*)IconAssets_nf_home,
      .val = 123456,
      .decimalNum = DecimalNum_2},
-    {.text = (char*)"- About", .content = (char*)IconAssets_nf_trash},
+    {.text = (char*)"- About", .content = (char*)IconAssets_f_about},
 };
 
 // 设置的列表选项数组

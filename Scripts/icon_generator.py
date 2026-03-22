@@ -87,6 +87,57 @@ class IconGenerator:
             arr = np.array(resized, dtype=np.uint8)
         return (arr >= threshold).astype(np.uint8)
 
+    def _normalize_encoding_mode(self, value, default='positive'):
+        token = str(value or '').strip().lower()
+        mapping = {
+            'positive': 'positive',
+            'negative': 'negative',
+            'pos': 'positive',
+            'neg': 'negative',
+            'yang': 'positive',
+            'yin': 'negative',
+            '阳码': 'positive',
+            '阴码': 'negative',
+        }
+        return mapping.get(token, default)
+
+    def _parse_image_paths_config(self, image_paths_cfg):
+        grouped = {
+            'positive': [],
+            'negative': [],
+        }
+
+        if isinstance(image_paths_cfg, list):
+            grouped['positive'].extend(image_paths_cfg)
+            return grouped
+
+        if not isinstance(image_paths_cfg, dict):
+            return grouped
+
+        key_aliases = {
+            'positive': 'positive',
+            'negative': 'negative',
+            'pos': 'positive',
+            'neg': 'negative',
+            'yang': 'positive',
+            'yin': 'negative',
+            '阳码': 'positive',
+            '阴码': 'negative',
+        }
+
+        for raw_key, raw_value in image_paths_cfg.items():
+            bucket = key_aliases.get(str(raw_key).strip().lower())
+            if not bucket:
+                print(f"[!] image_paths 分组键无效，已忽略: {raw_key}")
+                continue
+
+            if isinstance(raw_value, list):
+                grouped[bucket].extend(raw_value)
+            elif raw_value:
+                grouped[bucket].append(raw_value)
+
+        return grouped
+
     def _parse_codepoint_text(self, text):
         token = str(text).strip().upper()
         if token.startswith('U+'):
@@ -138,24 +189,33 @@ class IconGenerator:
             return BDFParser(font_path, size, render_config)
         raise ValueError(f"不支持的图标字体类型: {font_path}")
 
-    def _collect_icons_from_images(self, icon_cfg, width, height):
-        image_paths = icon_cfg.get('image_paths', []) or []
+    def _collect_icons_from_images(self, icon_cfg, width, height, render_config):
+        image_paths_cfg = icon_cfg.get('image_paths', []) or []
+        grouped_paths = self._parse_image_paths_config(image_paths_cfg)
+        base_encoding = self._normalize_encoding_mode(render_config.get('encoding', 'positive'))
         threshold = int(icon_cfg.get('image_threshold', 128))
 
         entries = []
-        for image_rel in image_paths:
-            full_path = self._resolve_path(image_rel)
-            if not os.path.exists(full_path):
-                print(f"[!] 图片不存在，跳过: {image_rel}")
-                continue
+        for image_encoding in ('positive', 'negative'):
+            for image_rel in grouped_paths[image_encoding]:
+                full_path = self._resolve_path(image_rel)
+                if not os.path.exists(full_path):
+                    print(f"[!] 图片不存在，跳过: {image_rel}")
+                    continue
 
-            try:
-                pixels = self._load_image_icon_pixels(full_path, width, height, threshold)
-                name = self._normalize_name(Path(image_rel).stem, 'image_icon')
-                entries.append({'name': name, 'pixels': pixels})
-                print(f"[+] 图片图标: {image_rel} -> {name}")
-            except Exception as e:
-                print(f"[!] 图片解析失败，跳过 {image_rel}: {e}")
+                try:
+                    pixels = self._load_image_icon_pixels(full_path, width, height, threshold)
+                    if image_encoding != base_encoding:
+                        pixels = (1 - pixels).astype(np.uint8)
+
+                    name = self._normalize_name(Path(image_rel).stem, 'image_icon')
+                    entries.append({'name': name, 'pixels': pixels})
+                    print(
+                        f"[+] 图片图标: {image_rel} -> {name} "
+                        f"(image={image_encoding}, global={base_encoding})"
+                    )
+                except Exception as e:
+                    print(f"[!] 图片解析失败，跳过 {image_rel}: {e}")
 
         return entries
 
@@ -220,7 +280,7 @@ class IconGenerator:
         output_name = icon_cfg.get('output_file_name', 'IconAssets')
         output_folder = self._resolve_path(icon_cfg.get('output_c_folder', '../Csource/font'))
 
-        image_entries = self._collect_icons_from_images(icon_cfg, width, height)
+        image_entries = self._collect_icons_from_images(icon_cfg, width, height, render_config)
         font_entries = self._collect_icons_from_fonts(icon_cfg, width, height, render_config)
 
         all_entries = image_entries + font_entries

@@ -2,7 +2,7 @@
  * Auto-generated icon header file
  * Module: IconAssets
  * Icon Count: 27
- * Generated: 2026-03-21 17:49:23
+ * Generated: 2026-03-22 15:21:55
  *
  * Layout: row_column
  * Bit Order: lsb
@@ -27,9 +27,9 @@ typedef struct {
 extern const uint8_t IconAssets_UI[ICONASSETS_ICON_BYTES];
 extern const uint8_t IconAssets_shezhi[ICONASSETS_ICON_BYTES];
 extern const uint8_t IconAssets_Curves[ICONASSETS_ICON_BYTES];
-extern const uint8_t IconAssets_lock[ICONASSETS_ICON_BYTES];
 extern const uint8_t IconAssets_Page[ICONASSETS_ICON_BYTES];
 extern const uint8_t IconAssets_f_about[ICONASSETS_ICON_BYTES];
+extern const uint8_t IconAssets_lock[ICONASSETS_ICON_BYTES];
 extern const uint8_t IconAssets_nf_home[ICONASSETS_ICON_BYTES];
 extern const uint8_t IconAssets_nf_terminal[ICONASSETS_ICON_BYTES];
 extern const uint8_t IconAssets_nf_gear[ICONASSETS_ICON_BYTES];

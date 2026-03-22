@@ -132,15 +132,20 @@ icon:
   # 图片二值化阈值（0-255，越大越容易变黑）
   image_threshold: 128
 
-  # 图片来源（支持多个路径，路径相对于 Scripts 目录）
+  # 图片来源（路径相对于 Scripts 目录）
+  # 支持两种写法：
+  # 1) 旧写法：直接列表（默认按 positive/阳码 处理）
+  # 2) 新写法：按编码分组，分别配置阳码/阴码
   image_paths:
-    # - ../Image/*.bmp
-    - ../Image/UI.bmp
-    - ../Image/设置.bmp
-    - ../Image/Curves.bmp
-    - ../Image/lock.bmp
-    - ../Image/Page.bmp
-    - ../Image/f-about.bmp
+    positive:   # 阳码（亮点=1）
+      # - ../Image/*.bmp
+    negative:   # 阴码（亮点=0）
+      - ../Image/UI.bmp
+      - ../Image/设置.bmp
+      - ../Image/Curves.bmp
+      - ../Image/Page.bmp
+      - ../Image/f-about.bmp
+      - ../Image/lock.bmp
 
   # 图标字体来源（支持Nerd Font等）
   icon_fonts:
@@ -148,11 +153,11 @@ icon:
       size: 30
       icons:
         - name: nf_home
-          codepoint: "F015"
+          codepoint: "f07d2"
         - name: nf_terminal
           codepoint: "F120"
         - name: nf_gear
-          char: ""
+          codepoint: "f1d1"
         - name: nf_search
           codepoint: "F002"
         - name: nf_folder
